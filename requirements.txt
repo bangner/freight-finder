@@ -1,0 +1,8 @@
+# Runtime dependencies, pinned exactly so every install behaves the same.
+fastapi==0.162.0
+uvicorn==0.54.0
+python-dotenv==1.2.4
+launchdarkly-server-sdk==9.18.3
+launchdarkly-server-sdk-ai==1.2.0
+# Model provider for the dispatcher assistant (AI Configs extra credit).
+anthropic==2.3.0

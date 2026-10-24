@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ABC Freight · Shipper portal</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">ABC</span>
+      <span>ABC Freight <span class="muted">Shipper portal</span></span>
+    </div>
+    <div class="topbar-right">
+      <label class="visitor">
+        <span class="muted">Viewing as</span>
+        <select id="visitor-select" aria-label="Viewing as"></select>
+      </label>
+      <span id="live" class="live" data-state="connecting" title="Live connection to flag updates">
+        <span class="dot" aria-hidden="true"></span><span id="live-text">Connecting</span>
+      </span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1 id="greeting">Your loads</h1>
+        <p class="muted" id="org-line"></p>
+      </div>
+      <button id="book-load" class="primary">Book a load</button>
+    </section>
+    <p id="book-confirm" class="notice" hidden>Booking request sent. A broker will confirm shortly.</p>
+
+    <!-- Original UI: always shown. -->
+    <section class="card" aria-labelledby="loads-title">
+      <h2 id="loads-title">Loads</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Load</th><th>Lane</th><th>Status</th><th>Scheduled arrival</th><th>Driver</th></tr></thead>
+          <tbody id="loads-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- New feature, flag eta-predictions. Hidden unless the flag is on. -->
+    <section id="eta-panel" class="card feature" aria-labelledby="eta-title" hidden>
+      <div class="card-head">
+        <h2 id="eta-title">Live ETA predictions <span class="badge">New</span></h2>
+        <button id="eta-refresh" class="secondary">Refresh predictions</button>
+      </div>
+      <p id="eta-error" class="error" role="alert" hidden></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Load</th><th>Predicted arrival</th><th>Delay</th><th>Risk</th><th>Why</th></tr></thead>
+          <tbody id="eta-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- New feature, flag driver-hours-of-service. Hidden unless the flag is "us" or "canada". -->
+    <section id="hos-panel" class="card feature" aria-labelledby="hos-title" hidden>
+      <div class="card-head">
+        <h2 id="hos-title">Driver hours of service <span class="badge">Beta</span></h2>
+        <span id="hos-rules" class="pill"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Load</th><th>Driver</th><th>Drive time left</th><th>Duty window left</th><th>Break due in</th><th>Status</th></tr></thead>
+          <tbody id="hos-body"></tbody>
+        </table>
+      </div>
+      <p class="muted small">Demo data, simplified from published US and Canadian limits. Not for compliance use.</p>
+    </section>
+
+    <!-- AI Config dispatcher-assistant. Hidden unless the config is enabled and a model key is set. -->
+    <section id="assistant-panel" class="card feature" aria-labelledby="assistant-title" hidden>
+      <div class="card-head">
+        <h2 id="assistant-title">Dispatcher assistant</h2>
+        <span id="assistant-model" class="pill"></span>
+      </div>
+      <form id="assistant-form" class="ask">
+        <input id="assistant-input" type="text" maxlength="500" placeholder="Where is load 1042? Which loads are at risk?" aria-label="Ask the assistant">
+        <button class="primary" type="submit">Ask</button>
+      </form>
+      <div id="assistant-answer" class="answer" hidden>
+        <p id="assistant-text"></p>
+        <div class="feedback">
+          <span class="muted small">Helpful?</span>
+          <button type="button" class="ghost" data-positive="true" aria-label="Helpful">👍</button>
+          <button type="button" class="ghost" data-positive="false" aria-label="Not helpful">👎</button>
+          <span id="assistant-thanks" class="muted small" hidden>Thanks for the feedback.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="flagbar" aria-label="Current LaunchDarkly values">
+    <span class="muted">LaunchDarkly</span>
+    <code id="flag-values">waiting for first update</code>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

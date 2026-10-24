@@ -1,0 +1,29 @@
+[project]
+name = "abc-freight"
+version = "1.0.0"
+description = "LaunchDarkly feature flag demo: release, remediate, target, experiment, AI Configs"
+requires-python = ">=3.11"
+license = "MIT"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "PT"]
+ignore = [
+    "S101",   # assert is how pytest checks things
+    "PT018",  # compound asserts read fine in these short tests
+]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["S311"]  # random is fine for synthetic demo traffic
+"tests/*" = ["S105", "S106", "S311"]  # fake keys and seeded random in tests
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
