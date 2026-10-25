@@ -5,7 +5,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 | Part | What it shows | LaunchDarkly feature |
 | --- | --- | --- |
 | 1. Release and remediate | The Live ETA panel is tested in production by ABC Freight's own staff, released to every customer, and rolled back with a one-line `curl`, all in an open browser with no reload. | Boolean flag, individual targeting, streaming updates, flag trigger |
-| 2. Target | The hours-of-service panel reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
+| 2. Target | The hours-of-service panel, a new component on the portal's landing page, reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
 | Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
 | Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. | AI Config, variations, AI metrics, feedback |
 | Extra: Integrations | Every flag change, including the rollback, posts to Slack. | Slack app |
@@ -17,7 +17,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 You need Python 3.11 or newer, `git`, `curl`, and a LaunchDarkly account (a [free trial](https://launchdarkly.com/start-trial/) works). These steps were written on macOS and Linux; on Windows use WSL or adjust the `venv` activation command.
 
 ```bash
-git clone <this repo> abc-freight && cd abc-freight
+git clone https://github.com/bangner/Freight-Finder-.git abc-freight && cd abc-freight
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then paste your SDK key into .env
