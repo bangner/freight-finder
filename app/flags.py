@@ -8,7 +8,9 @@ import asyncio
 import logging
 
 import ldclient
-from ldclient import Context
+from ldclient import Config, Context
+
+from app import __version__
 
 log = logging.getLogger(__name__)
 
@@ -16,15 +18,29 @@ log = logging.getLogger(__name__)
 # (see docs/LAUNCHDARKLY_SETUP.md). The fallback values below are what the
 # SDK returns if a flag is missing or LaunchDarkly has never been reachable,
 # so each one is the safe, original behavior.
-ETA_FLAG = "eta-predictions"  # boolean, Part 1 kill switch
-HOS_FLAG = "driver-hours-of-service"  # string: "off" | "us" | "canada", Part 2
-ASSISTANT_CONFIG = "dispatcher-assistant"  # AI Config, extra credit
+# Lifecycle: a temporary release flag is removed once its feature is fully
+# released (docs/RUNBOOK.md, "Retire a release flag"); long-lived flags stay.
+ETA_FLAG = "eta-predictions"  # boolean, Part 1. Temporary release flag
+HOS_FLAG = "driver-hours-of-service"  # string: "off" | "us" | "canada", Part 2. Long-lived
+ASSISTANT_CONFIG = "dispatcher-assistant"  # AI Config, extra credit. Long-lived
 
 FLAG_FALLBACKS: dict[str, object] = {ETA_FLAG: False, HOS_FLAG: "off"}
 
 # Every key an open browser should react to. An AI Config is a flag under the
 # hood, so the same change listener covers it.
 WATCHED_KEYS = (ETA_FLAG, HOS_FLAG, ASSISTANT_CONFIG)
+
+APPLICATION_ID = "abc-freight"
+
+
+def sdk_config(sdk_key: str, application_id: str = APPLICATION_ID, **options) -> Config:
+    """SDK configuration that names the application connecting to LaunchDarkly.
+
+    The SDK sends the application id and version with every connection, so
+    LaunchDarkly can tell this app apart from the scripts and show which version
+    is evaluating flags. Ids may use letters, digits, ".", "-" and "_".
+    """
+    return Config(sdk_key, application={"id": application_id, "version": __version__}, **options)
 
 
 def evaluate_flags(context: Context) -> tuple[dict[str, object], dict[str, str]]:

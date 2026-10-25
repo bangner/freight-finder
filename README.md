@@ -124,7 +124,7 @@ The tests use the SDK's `TestData` source, so they need no network and no keys. 
 
 - [LaunchDarkly setup](docs/LAUNCHDARKLY_SETUP.md): project, flags, targeting, trigger, metric, experiment, AI Config, Slack
 - [Architecture](docs/ARCHITECTURE.md): design, failure behavior, limits, and what changes with more instances
-- [Runbook](docs/RUNBOOK.md): release, roll back, verify, rotate secrets
+- [Runbook](docs/RUNBOOK.md): release, roll back, verify, retire a release flag, rotate secrets
 - [Experiment](docs/EXPERIMENT.md): sizing, result and decision
 - [Testing](docs/TESTING.md): automated tests and the manual test plan
 - [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag

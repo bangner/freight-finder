@@ -37,6 +37,16 @@ A monitoring tool can call the same trigger URL when an alert fires, which turns
 3. An open page has lost the feature without a refresh. The footer bar shows the flag's current value and the reason `OFF`. `python scripts/explain.py` shows every visitor at once.
 4. `curl -s localhost:8000/api/state?visitor=sam` shows `"eta": null`.
 
+## Retire a release flag
+
+A release flag is temporary. Once `eta-predictions` has served `true` to every customer long enough that nobody would roll it back (two weeks is a common rule), remove it:
+
+1. In the code, delete the flag check and the code path for `false`: the `ETA_FLAG` gate in `app/main.py`, its entries in `app/flags.py`, the check in `/api/eta/refresh`, and the tests for the off state.
+2. Deploy. The feature now runs without asking LaunchDarkly.
+3. Archive the flag in LaunchDarkly. Do this after the deploy: code that still evaluates an archived flag gets its fallback value, `false`, and the feature would disappear.
+
+Long-lived flags stay: `driver-hours-of-service` decides which rule set each customer gets, and `dispatcher-assistant` holds the assistant's model and prompt.
+
 ## Rotate secrets
 
 | Secret | Where to rotate | Then |

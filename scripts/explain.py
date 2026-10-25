@@ -20,10 +20,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import ldclient  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
-from ldclient import Config, LDClient  # noqa: E402
+from ldclient import LDClient  # noqa: E402
 
 from app.contexts import VISITORS, build_context  # noqa: E402
-from app.flags import ASSISTANT_CONFIG, FLAG_FALLBACKS, describe_reason  # noqa: E402
+from app.flags import ASSISTANT_CONFIG, FLAG_FALLBACKS, describe_reason, sdk_config  # noqa: E402
 from app.settings import ConfigError, load_settings  # noqa: E402
 
 
@@ -59,7 +59,7 @@ def main() -> None:
         sys.exit(f"Configuration error: {error}")
 
     # send_events=False: looking at flags must not count as an exposure or a conversion.
-    ldclient.set_config(Config(settings.sdk_key, send_events=False))
+    ldclient.set_config(sdk_config(settings.sdk_key, "abc-freight-explain", send_events=False))
     client = ldclient.get()
     if not client.is_initialized():
         sys.exit("Could not reach LaunchDarkly. Check the SDK key and your network.")

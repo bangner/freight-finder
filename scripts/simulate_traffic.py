@@ -21,9 +21,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import ldclient  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
-from ldclient import Config, Context, LDClient  # noqa: E402
+from ldclient import Context, LDClient  # noqa: E402
 
-from app.flags import HOS_FLAG  # noqa: E402
+from app.flags import HOS_FLAG, sdk_config  # noqa: E402
 from app.settings import ConfigError, load_settings  # noqa: E402
 
 EVENT = "book-load-clicked"
@@ -72,7 +72,7 @@ def main() -> None:
     except ConfigError as error:
         sys.exit(f"Configuration error: {error}")
 
-    ldclient.set_config(Config(settings.sdk_key))
+    ldclient.set_config(sdk_config(settings.sdk_key, "abc-freight-traffic-simulator"))
     client = ldclient.get()
     if not client.is_initialized():
         sys.exit("Could not reach LaunchDarkly. Check the SDK key and your network.")

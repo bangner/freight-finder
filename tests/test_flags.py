@@ -1,9 +1,13 @@
 """Flag evaluation and targeting: what each visitor sees for each flag setup."""
 
+import tomllib
+from pathlib import Path
+
 import pytest
 
+from app import __version__
 from app.contexts import VISITORS, build_context, get_visitor
-from app.flags import describe_reason
+from app.flags import describe_reason, sdk_config
 from app.main import build_state
 from app.settings import Settings
 from tests.conftest import FAKE_SDK_KEY, eta, hos
@@ -119,3 +123,14 @@ def test_email_is_private_and_guest_is_anonymous():
 def test_unknown_visitor_falls_back_to_guest():
     assert get_visitor("nobody").key == "guest"
     assert get_visitor(None).key == "guest"
+
+
+def test_sdk_config_names_the_application():
+    assert sdk_config(FAKE_SDK_KEY).application == {"id": "abc-freight", "version": __version__}
+    explain = sdk_config(FAKE_SDK_KEY, "abc-freight-explain", send_events=False)
+    assert explain.application["id"] == "abc-freight-explain" and explain.send_events is False
+
+
+def test_version_matches_pyproject():
+    pyproject = tomllib.loads((Path(__file__).resolve().parent.parent / "pyproject.toml").read_text())
+    assert __version__ == pyproject["project"]["version"]

@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from app import assistant
 from app.contexts import VISITORS, build_context, get_visitor
 from app.features import HOS_RULES, PredictionServiceError, eta_predictions, hours_of_service, refresh_eta_predictions
-from app.flags import ETA_FLAG, HOS_FLAG, FlagSubscription, evaluate_flags
+from app.flags import ETA_FLAG, HOS_FLAG, FlagSubscription, evaluate_flags, sdk_config
 from app.loads import as_dicts, loads_for
 from app.settings import Settings, load_settings
 
@@ -110,7 +110,7 @@ def create_app(ld_config: Config | None = None, settings: Settings | None = None
     async def lifespan(app: FastAPI):
         app.state.settings = settings or load_settings()
         # Initialize the SDK once. set_config waits up to 5 s for the first flag data.
-        ldclient.set_config(ld_config or Config(app.state.settings.sdk_key))
+        ldclient.set_config(ld_config or sdk_config(app.state.settings.sdk_key))
         if ldclient.get().is_initialized():
             log.info("LaunchDarkly SDK initialized")
         else:

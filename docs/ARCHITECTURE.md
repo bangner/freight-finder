@@ -16,7 +16,7 @@ Rollback never touches the app. It changes the flag in LaunchDarkly, and the str
 
 ## How a flag change reaches the browser
 
-1. **Startup.** The lifespan handler reads settings (exiting with a clear message if `LAUNCHDARKLY_SDK_KEY` is missing), calls `ldclient.set_config(Config(sdk_key))` once, and logs whether the client initialized. Shutdown calls `ldclient.get().close()`, which flushes analytics and experiment events.
+1. **Startup.** The lifespan handler reads settings (exiting with a clear message if `LAUNCHDARKLY_SDK_KEY` is missing), calls `ldclient.set_config(sdk_config(sdk_key))` once, and logs whether the client initialized. `sdk_config` (`app/flags.py`) adds application metadata, the id `abc-freight` and the app's version, so LaunchDarkly can tell which application and version each connection comes from. The scripts connect under their own ids. Shutdown calls `ldclient.get().close()`, which flushes analytics and experiment events.
 2. **Connect.** `GET /events?visitor=<key>` builds the visitor's multi-context (`app/contexts.py`).
 3. **Snapshot first.** The stream sends the full page state at once, so a new or reconnecting browser is correct even if it missed changes.
 4. **Subscribe.** `FlagSubscription` (`app/flags.py`) registers `flag_tracker.add_flag_value_change_listener(key, context, callback)` for each watched key: both flags and the AI Config. The SDK calls the callback only when that context's value actually changes.

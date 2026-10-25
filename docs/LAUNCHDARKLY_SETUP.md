@@ -21,6 +21,7 @@ Use the SDK key, not the client-side ID or the mobile key. The app rejects keys 
 | Variations | `true` (Available), `false` (Unavailable) |
 | Default when on | `false` (the create form preselects `true`; change it) |
 | Default when off | `false` |
+| Temporary | Yes. It is a release flag: once the feature is fully released, the flag is removed (see "Retire a release flag" in [RUNBOOK.md](RUNBOOK.md)) |
 
 Leave the flag **Off** in Test. Then add one individual target so the release can be tested in production first:
 
@@ -60,6 +61,7 @@ Reference: [Flag triggers](https://launchdarkly.com/docs/home/releases/triggers)
 | Variations | `off`, `us`, `canada` (values exactly as written) |
 | Default rule | `off` (the create form may preselect another value; change it) |
 | Off variation | `off` |
+| Temporary | No. It decides which rule set each customer sees, so it stays |
 
 Turn the flag **On** with the default rule serving `off`. Nobody sees the panel yet. Then build the targeting while a browser is open, so the audience sees each step land:
 
