@@ -23,7 +23,7 @@ class Visitor:
     anonymous: bool
     org_key: str
     org_name: str
-    plan: str  # free | pro | enterprise
+    plan: str  # free | pro | enterprise | internal
     region: str  # US | CA
     fleet_size: int
     beta_tester: bool
@@ -89,6 +89,21 @@ VISITORS: dict[str, Visitor] = {
             region="CA",
             fleet_size=8,
             beta_tester=False,
+        ),
+        # off: ABC Freight's own QA tester. Part 1 releases eta-predictions to this
+        # organization first (an individual target), then to everyone.
+        Visitor(
+            key="quinn",
+            name="Quinn",
+            email="quinn@abcfreight.example",
+            role="QA engineer",
+            anonymous=False,
+            org_key="abc-freight",
+            org_name="ABC Freight (internal)",
+            plan="internal",
+            region="US",
+            fleet_size=0,
+            beta_tester=True,
         ),
         # off: anonymous visitor on the public site
         Visitor(

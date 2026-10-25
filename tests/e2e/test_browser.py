@@ -36,11 +36,8 @@ def _free_port() -> int:
 
 @pytest.fixture
 def server(td, monkeypatch):
-    monkeypatch.setattr(
-        assistant,
-        "_call_model",
-        lambda *a: ("LSF-1041 is running about 22 minutes late because of heavy traffic.", 90, 14),
-    )
+    answer = "LSF-1041 is running about 22 minutes late because of heavy traffic."
+    monkeypatch.setattr(assistant, "_call_model", lambda *a: assistant.ModelReply(answer, 90, 14, "end_turn"))
     app = create_app(ld_test_config(td), Settings(sdk_key=FAKE_SDK_KEY, model_api_key=FAKE_MODEL_KEY))
     port = _free_port()
     config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning", timeout_graceful_shutdown=1)
@@ -91,7 +88,15 @@ def test_release_rollback_targeting_and_assistant_without_reload(server, td, pag
     page.evaluate("window.__sameDocument = true")
     shot(page, "1-original")
 
-    # Part 1: release from the dashboard.
+    # Part 1: test in production. Only ABC Freight's own QA tester sees it first.
+    eta(td, True, internal_only=True)
+    page.select_option("#visitor-select", "quinn")
+    expect(page.locator("#eta-panel")).to_be_visible(timeout=TIMEOUT_MS)
+    expect(page.locator("#flag-values")).to_contain_text("eta-predictions: true TARGET_MATCH")
+    page.select_option("#visitor-select", "guest")
+    expect(page.locator("#eta-panel")).to_be_hidden(timeout=TIMEOUT_MS)
+
+    # Then release to everyone from the dashboard.
     eta(td, True)
     expect(page.locator("#eta-panel")).to_be_visible(timeout=TIMEOUT_MS)
     expect(page.locator("#eta-body tr")).to_have_count(5)
@@ -113,6 +118,8 @@ def test_release_rollback_targeting_and_assistant_without_reload(server, td, pag
     expect(page.locator("#hos-panel")).to_be_hidden()
     hos(td, targets=True, rules=True)
     expect(page.locator("#hos-rules")).to_have_text("Rules: Canada (south of 60°N)", timeout=TIMEOUT_MS)
+    # The footer says why: Dana matched the first targeting rule.
+    expect(page.locator("#flag-values")).to_contain_text('driver-hours-of-service: "canada" RULE_MATCH (rule 1)')
     shot(page, "4-hos-canada")
 
     page.select_option("#visitor-select", "sam")

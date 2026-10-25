@@ -38,16 +38,18 @@ def build_state(visitor_key: str | None, settings: Settings) -> dict:
     """Everything the page shows for one visitor, gated by LaunchDarkly flags."""
     visitor = get_visitor(visitor_key)
     context = build_context(visitor)
-    flags = evaluate_flags(context)
+    flags, reasons = evaluate_flags(context)
     loads = loads_for(visitor)
 
     state = {
         "visitor": {"key": visitor.key, "name": visitor.name, "org_name": visitor.org_name},
         "flags": flags,
+        # Why LaunchDarkly served each value (TARGET_MATCH, RULE_MATCH, ...), shown in the footer.
+        "reasons": reasons,
         "loads": as_dicts(loads),
         "eta": None,
         "hos": None,
-        "assistant": assistant.status(visitor, context, loads, settings.model_api_key),
+        "assistant": assistant.status(visitor, context, loads, settings),
     }
     # New features only run when their flag says so.
     if flags[ETA_FLAG] is True:
@@ -181,10 +183,13 @@ def create_app(ld_config: Config | None = None, settings: Settings | None = None
                 build_context(visitor),
                 loads_for(visitor),
                 body.question,
-                request.app.state.settings.model_api_key,
+                request.app.state.settings,
             )
         except assistant.AssistantUnavailable as error:
             raise HTTPException(503, str(error)) from error
+        except assistant.AssistantNoAnswer as error:
+            # Cut off or declined: say so, rather than showing half an answer.
+            raise HTTPException(502, str(error)) from error
         except Exception as error:
             raise HTTPException(502, "The assistant could not answer right now") from error
 

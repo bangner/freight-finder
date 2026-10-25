@@ -74,7 +74,8 @@
       <p class="muted small">Demo data, simplified from published US and Canadian limits. Not for compliance use.</p>
     </section>
 
-    <!-- AI Config dispatcher-assistant. Hidden unless the config is enabled and a model key is set. -->
+    <!-- AI Config dispatcher-assistant. Hidden unless the config is enabled for this visitor.
+         Without MODEL_API_KEY (or with ASSISTANT_DRY_RUN=true) it is a dry run and calls no model. -->
     <section id="assistant-panel" class="card feature" aria-labelledby="assistant-title" hidden>
       <div class="card-head">
         <h2 id="assistant-title">Dispatcher assistant</h2>
@@ -96,9 +97,9 @@
     </section>
   </main>
 
-  <footer class="flagbar" aria-label="Current LaunchDarkly values">
+  <footer class="flagbar" aria-label="Current LaunchDarkly values and evaluation reasons">
     <span class="muted">LaunchDarkly</span>
-    <code id="flag-values">waiting for first update</code>
+    <span id="flag-values" class="flag-values">waiting for first update</span>
   </footer>
 
   <script src="/static/app.js"></script>

@@ -52,8 +52,17 @@ def ld_test_config(td: TestData) -> Config:
     return Config(FAKE_SDK_KEY, update_processor_class=data_source, send_events=False)
 
 
-def eta(td: TestData, on: bool) -> None:
-    td.update(td.flag(ETA_FLAG).boolean_flag().variation_for_all(on))
+INTERNAL_ORG = "abc-freight"
+
+
+def eta(td: TestData, on: bool, *, internal_only: bool = False) -> None:
+    """The ETA flag. internal_only: on, but served only to ABC Freight's own organization (the staged release)."""
+    flag = td.flag(ETA_FLAG).boolean_flag()
+    if internal_only:
+        flag = flag.on(True).fallthrough_variation(False).variation_for_key("organization", INTERNAL_ORG, True)
+    else:
+        flag = flag.variation_for_all(on)
+    td.update(flag)
 
 
 def hos(td: TestData, *, on: bool = True, targets: bool = False, rules: bool = False) -> None:
@@ -86,8 +95,14 @@ ASSISTANT_VALUE = {
 }
 
 
-def assistant_config(td: TestData, enabled: bool) -> None:
-    value = {**ASSISTANT_VALUE, "_ldMeta": {**ASSISTANT_VALUE["_ldMeta"], "enabled": enabled}}
+def assistant_config(td: TestData, enabled: bool, **parameters) -> None:
+    """The AI Config, enabled or not. Keyword arguments add model parameters, e.g. effort="low"."""
+    model = ASSISTANT_VALUE["model"]
+    value = {
+        **ASSISTANT_VALUE,
+        "_ldMeta": {**ASSISTANT_VALUE["_ldMeta"], "enabled": enabled},
+        "model": {**model, "parameters": {**model["parameters"], **parameters}},
+    }
     td.update(td.flag(ASSISTANT_CONFIG).value_for_all(value))
 
 
@@ -104,9 +119,9 @@ def ld(td):
     ldclient.get().close()
 
 
-def make_client(td: TestData, model_api_key: str | None = None) -> TestClient:
-    app = create_app(ld_test_config(td), Settings(sdk_key=FAKE_SDK_KEY, model_api_key=model_api_key))
-    return TestClient(app)
+def make_client(td: TestData, model_api_key: str | None = None, assistant_dry_run: bool = False) -> TestClient:
+    settings = Settings(sdk_key=FAKE_SDK_KEY, model_api_key=model_api_key, assistant_dry_run=assistant_dry_run)
+    return TestClient(create_app(ld_test_config(td), settings))
 
 
 @pytest.fixture

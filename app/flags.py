@@ -27,9 +27,36 @@ FLAG_FALLBACKS: dict[str, object] = {ETA_FLAG: False, HOS_FLAG: "off"}
 WATCHED_KEYS = (ETA_FLAG, HOS_FLAG, ASSISTANT_CONFIG)
 
 
-def evaluate_flags(context: Context) -> dict[str, object]:
+def evaluate_flags(context: Context) -> tuple[dict[str, object], dict[str, str]]:
+    """Each flag's value for this context, and LaunchDarkly's reason for it.
+
+    variation_detail is variation plus the evaluation reason. It records the same
+    analytics and experiment events, so each flag is still evaluated once.
+    """
     client = ldclient.get()
-    return {key: client.variation(key, context, fallback) for key, fallback in FLAG_FALLBACKS.items()}
+    values, reasons = {}, {}
+    for key, fallback in FLAG_FALLBACKS.items():
+        detail = client.variation_detail(key, context, fallback)
+        values[key] = detail.value
+        reasons[key] = describe_reason(detail.reason)
+    return values, reasons
+
+
+def describe_reason(reason: dict | None) -> str:
+    """An evaluation reason in a few words, such as "RULE_MATCH (rule 2, in experiment)"."""
+    if not reason:
+        return "unknown"
+    kind = reason.get("kind", "unknown")
+    notes = []
+    if kind == "RULE_MATCH" and "ruleIndex" in reason:
+        notes.append(f"rule {reason['ruleIndex'] + 1}")  # the SDK counts rules from 0, people from 1
+    if kind == "PREREQUISITE_FAILED" and reason.get("prerequisiteKey"):
+        notes.append(reason["prerequisiteKey"])
+    if kind == "ERROR" and reason.get("errorKind"):
+        notes.append(reason["errorKind"])  # FLAG_NOT_FOUND means the flag key is missing or misspelled
+    if reason.get("inExperiment"):
+        notes.append("in experiment")
+    return f"{kind} ({', '.join(notes)})" if notes else kind
 
 
 class FlagSubscription:

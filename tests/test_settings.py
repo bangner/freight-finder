@@ -19,3 +19,10 @@ def test_model_key_is_optional(monkeypatch):
     monkeypatch.setenv("LAUNCHDARKLY_SDK_KEY", "sdk-abc")
     monkeypatch.delenv("MODEL_API_KEY", raising=False)
     assert load_settings().model_api_key is None
+
+
+@pytest.mark.parametrize(("value", "expected"), [("true", True), ("1", True), ("", False), ("no", False)])
+def test_dry_run_can_be_switched_on(monkeypatch, value, expected):
+    monkeypatch.setenv("LAUNCHDARKLY_SDK_KEY", "sdk-abc")
+    monkeypatch.setenv("ASSISTANT_DRY_RUN", value)
+    assert load_settings().assistant_dry_run is expected

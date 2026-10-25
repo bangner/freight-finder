@@ -10,10 +10,24 @@ from pathlib import Path
 import ldclient
 import pytest
 
+from scripts.explain import explain
 from scripts.simulate_traffic import simulate
-from tests.conftest import hos
+from tests.conftest import assistant_config, hos
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def test_explain_shows_each_value_and_why(ld):
+    hos(ld, targets=True, rules=True)
+    assistant_config(ld, enabled=True)
+    rows = {(visitor, key): (value, reason) for visitor, key, value, reason in explain(ldclient.get())}
+    assert len(rows) == 18  # 6 visitors x (2 flags + the AI Config)
+    assert rows["quinn", "driver-hours-of-service"] == ('"off"', "FALLTHROUGH")
+    assert rows["riley", "driver-hours-of-service"] == ('"us"', "TARGET_MATCH")
+    assert rows["dana", "driver-hours-of-service"] == ('"canada"', "RULE_MATCH (rule 1)")
+    assert rows["alex", "driver-hours-of-service"] == ('"off"', "FALLTHROUGH")
+    assert rows["sam", "eta-predictions"] == ("false", "ERROR (FLAG_NOT_FOUND)")
+    assert rows["sam", "dispatcher-assistant"] == ("concise (claude-haiku-5-5)", "FALLTHROUGH")
 
 
 def test_simulated_visitors_land_in_the_us_enterprise_audience(ld):

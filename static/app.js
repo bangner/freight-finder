@@ -34,6 +34,20 @@
     cells.forEach((c) => tr.appendChild(c));
     return tr;
   }
+  // One footer entry: "key: value" and, when known, the evaluation reason.
+  function flagItem(text, reason) {
+    const item = document.createElement("span");
+    const code = document.createElement("code");
+    code.textContent = text;
+    item.appendChild(code);
+    if (reason) {
+      const why = document.createElement("span");
+      why.className = "reason";
+      why.textContent = reason;
+      item.append(" ", why);
+    }
+    return item;
+  }
 
   function setLive(state, text) {
     $("live").dataset.state = state;
@@ -87,13 +101,17 @@
 
     // AI Config: dispatcher assistant.
     const assistant = $("assistant-panel");
+    const dryRun = state.assistant.enabled && state.assistant.dry_run;
     if (state.assistant.enabled) {
-      $("assistant-model").textContent = `Model: ${state.assistant.model}`;
+      $("assistant-model").textContent = `Model: ${state.assistant.model}${dryRun ? " (dry run)" : ""}`;
     }
     showPanel(assistant, state.assistant.enabled);
 
-    $("flag-values").textContent = Object.entries(state.flags).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("  ·  ")
-      + `  ·  dispatcher-assistant: ${state.assistant.enabled ? "enabled" : "disabled"}`;
+    // Footer: each value plus LaunchDarkly's reason for it, so you can see *why* this visitor got it.
+    $("flag-values").replaceChildren(
+      ...Object.entries(state.flags).map(([k, v]) => flagItem(`${k}: ${JSON.stringify(v)}`, state.reasons[k])),
+      flagItem(`dispatcher-assistant: ${state.assistant.enabled ? state.assistant.model : "disabled"}`, dryRun ? "dry run" : ""),
+    );
 
     lastState = state;
   }
@@ -179,6 +197,8 @@
         $("assistant-text").textContent = data.detail || "The assistant is unavailable.";
         feedbackToken = null;
       }
+      // Thumbs only for a real model answer: a dry run or an error has nothing to rate.
+      document.querySelector("#assistant-answer .feedback").hidden = !feedbackToken;
     } finally {
       button.disabled = false;
     }
