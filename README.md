@@ -78,7 +78,7 @@ Add the individual target, then the rules, while watching an open page: only the
 python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 ```
 
-[docs/EXPERIMENT.md](docs/EXPERIMENT.md) has the sizing, the result (`us` lifted bookings from 8.1% to 11.9%, 99.9% probability to be best) and the decision.
+[docs/EXPERIMENT.md](docs/EXPERIMENT.md) has the sizing, the result (`us` lifted bookings from 8.1% to 11.9%, p = 0.002) and the decision.
 
 **AI Configs.** With the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Sam and Dana (enterprise) get the `friendly` variation; everyone else gets `concise`. Without `MODEL_API_KEY` the answer is a dry run that shows exactly what LaunchDarkly served.
 

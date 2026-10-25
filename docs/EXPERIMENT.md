@@ -34,7 +34,7 @@ python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 - Two-proportion z-test: z = 3.14, p = 0.002.
 - Probability that `us` beats `off` (Beta-Binomial, flat prior): 99.9%.
 
-LaunchDarkly's results tab shows its own Bayesian numbers. They also include the 500-visitor smoke run sent earlier, so they differ slightly from the table above, but they point the same way.
+The experiment in LaunchDarkly uses the frequentist approach (significance level 0.05, two-sided), the same test as above. Its results also include the 500-visitor smoke run sent earlier, so they differ slightly from the table above. LaunchDarkly updates experiment results periodically, so a new run can take a while to appear.
 
 ## Decision
 
