@@ -4,9 +4,9 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 
 | Part | What it shows | LaunchDarkly feature |
 | --- | --- | --- |
-| 1. Release and remediate | The Live ETA panel turns on and off in an open browser, with no reload. A one-line `curl` rolls it back. | Boolean flag, streaming updates, flag trigger |
+| 1. Release and remediate | The Live ETA panel is tested in production by ABC Freight's own staff, released to every customer, and rolled back with a one-line `curl`, all in an open browser with no reload. | Boolean flag, individual targeting, streaming updates, flag trigger |
 | 2. Target | The hours-of-service panel reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
-| Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? | Custom conversion metric, experiment |
+| Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
 | Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. | AI Config, variations, AI metrics, feedback |
 | Extra: Integrations | Every flag change, including the rollback, posts to Slack. | Slack app |
 
@@ -35,7 +35,8 @@ Prefer Docker? `docker build -t abc-freight . && docker run --rm -p 8000:8000 --
 | `LAUNCHDARKLY_SDK_KEY` | Everything. Server-side SDK key for your Test environment (starts with `sdk-`). | Yes |
 | `LD_TRIGGER_URL` | `scripts/rollback.sh` (Part 1 remediation) | For the rollback demo |
 | `LD_API_TOKEN`, `LD_PROJECT_KEY`, `LD_ENV_KEY` | REST fallback for `scripts/rollback.sh` | No |
-| `MODEL_API_KEY` | The dispatcher assistant (an Anthropic API key) | No |
+| `MODEL_API_KEY` | Real answers from the dispatcher assistant (an Anthropic API key). Without it the assistant runs as a free dry run. | No |
+| `ASSISTANT_DRY_RUN` | Set to `true` to keep the assistant in dry-run mode even with a key | No |
 
 The app refuses to start without `LAUNCHDARKLY_SDK_KEY`, and says so. No key or token is ever sent to the browser.
 
@@ -43,25 +44,30 @@ The app refuses to start without `LAUNCHDARKLY_SDK_KEY`, and says so. No key or 
 
 Open http://127.0.0.1:8000 and leave the tab open for the whole demo. Nothing below reloads the page.
 
-**Part 1: release and remediate**
+The footer bar shows every flag's current value and the reason LaunchDarkly gave for it, such as `TARGET_MATCH` or `RULE_MATCH (rule 2)`. `python scripts/explain.py` prints the same for every visitor at once.
 
-1. With `eta-predictions` off, the page shows only the loads table.
-2. In LaunchDarkly, turn `eta-predictions` on. The **Live ETA predictions** panel appears within a second.
-3. Click **Refresh predictions**. It fails with a timeout. This is the deliberate bug standing in for a bad release.
-4. Roll back from a terminal:
+**Part 1: release and remediate.** Start with `eta-predictions` off and its default rule serving `false` (setup step 2).
+
+1. Viewing as Guest, the page shows only the loads table.
+2. **Test in production.** Turn `eta-predictions` on. Guest still sees nothing. Switch **Viewing as** to Quinn, an ABC Freight QA engineer: the **Live ETA predictions** panel is there, because ABC Freight's own organization is individually targeted.
+3. As Quinn, click **Refresh predictions**. It fails with a timeout. This is the deliberate bug, here found by an internal tester before any customer.
+4. **Release.** For the demo, release anyway: change the default rule to `true`. Every visitor's page shows the panel within a second, without a reload.
+5. **Remediate** from a terminal:
    ```bash
    scripts/rollback.sh
    ```
-   The panel disappears from the open page, and the flag shows Off in LaunchDarkly. Run the command again: it is safe to repeat.
+   The flag trigger turns the flag off. The panel disappears from every open page in under a second, and Slack posts the change. Run the command again: it is safe to repeat.
+6. Reset for the next run: set the default rule back to `false`.
 
 **Part 2: targeting.** Switch visitors with **Viewing as** at the top right.
 
 | Visitor | Organization | Plan, region | Hours-of-service panel | Why |
 | --- | --- | --- | --- | --- |
 | Dana | Prairie Haul | enterprise, CA | Canadian rules | Rule: enterprise in CA |
-| Sam | Lone Star Freight | enterprise, US | US rules | Rule: enterprise in US |
+| Sam | Lone Star Freight | enterprise, US | US rules, or hidden while the experiment runs | Rule: enterprise in US. The experiment assigns the organization to `us` or `off` at random |
 | Riley | Lakeshore Logistics | pro, US | US rules | Individual target on the organization |
 | Alex | Maple Route | free, CA | Hidden | Matches nothing |
+| Quinn | ABC Freight (internal) | internal, US | Hidden | Matches nothing. Quinn is the internal tester for Part 1 |
 | Guest | Public | free, US | Hidden | Anonymous, matches nothing |
 
 Add the individual target, then the rules, while watching an open page: only the affected visitors change. Turn the flag off and every panel disappears, because the kill switch beats targeting.
@@ -69,10 +75,12 @@ Add the individual target, then the rules, while watching an open page: only the
 **Experimentation.** Start the experiment from the setup guide, then send synthetic traffic:
 
 ```bash
-python scripts/simulate_traffic.py --visitors 500
+python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 ```
 
-**AI Configs.** With `MODEL_API_KEY` set and the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again.
+[docs/EXPERIMENT.md](docs/EXPERIMENT.md) has the sizing, the result (`us` lifted bookings from 8.1% to 11.9%, 99.9% probability to be best) and the decision.
+
+**AI Configs.** With the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Sam and Dana (enterprise) get the `friendly` variation; everyone else gets `concise`. Without `MODEL_API_KEY` the answer is a dry run that shows exactly what LaunchDarkly served.
 
 More screenshots are in [docs/images](docs/images). The browser test takes them, so the assistant's answer there comes from a test stub, not a real model.
 
@@ -98,6 +106,7 @@ LaunchDarkly ──stream──▶ SDK (FastAPI) ──listener──▶ /events
 | `static/` | Plain HTML, CSS and JavaScript (no framework) |
 | `scripts/rollback.sh` | Remediation: turn a flag off |
 | `scripts/simulate_traffic.py` | Synthetic traffic for the experiment |
+| `scripts/explain.py` | Every visitor's flag values and the reasons, from your LaunchDarkly environment |
 | `tests/` | Unit, integration and browser tests; no keys or network needed |
 | `docs/` | Setup, architecture, runbook, testing, decision records |
 
@@ -105,7 +114,7 @@ LaunchDarkly ──stream──▶ SDK (FastAPI) ──listener──▶ /events
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                    # 41 tests, about 3 s, no LaunchDarkly account needed
+pytest                                    # about 55 tests, a few seconds, no LaunchDarkly account needed
 python -m playwright install chromium && pytest tests/e2e   # real browser, flags flipped live
 ```
 
@@ -116,6 +125,7 @@ The tests use the SDK's `TestData` source, so they need no network and no keys. 
 - [LaunchDarkly setup](docs/LAUNCHDARKLY_SETUP.md): project, flags, targeting, trigger, metric, experiment, AI Config, Slack
 - [Architecture](docs/ARCHITECTURE.md): design, failure behavior, limits, and what changes with more instances
 - [Runbook](docs/RUNBOOK.md): release, roll back, verify, rotate secrets
+- [Experiment](docs/EXPERIMENT.md): sizing, result and decision
 - [Testing](docs/TESTING.md): automated tests and the manual test plan
 - [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag
 

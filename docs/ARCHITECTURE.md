@@ -32,7 +32,7 @@ The feature code lives in `app/features.py` and only runs when its flag is on. W
 
 ## Contexts
 
-Every evaluation uses a `user` + `organization` multi-context. Targeting rules match organization attributes (`plan`, `region`, `fleet_size`, `beta_tester`), which is how a B2B portal is rolled out. The user's `email` is a private attribute: it can be used for evaluation but is not sent to LaunchDarkly. The guest visitor is an anonymous context.
+Every evaluation uses a `user` + `organization` multi-context. Targeting rules match organization attributes (`plan`, `region`, `fleet_size`, `beta_tester`), which is how a B2B portal is rolled out. The user's `email` is a private attribute: it can be used for evaluation but is not sent to LaunchDarkly. The guest visitor is an anonymous context. Quinn belongs to `abc-freight`, ABC Freight's own organization, which is the individual target used to test a release in production before customers see it.
 
 ## Failure behavior
 
@@ -44,6 +44,8 @@ Every evaluation uses a `user` + `organization` multi-context. Targeting rules m
 | SDK key revoked or invalid | LaunchDarkly rejects it and the SDK stops retrying. The app keeps serving fallbacks until the key is fixed and the app restarted. |
 | Browser loses its connection | `EventSource` reconnects after 2 s and receives a fresh snapshot. |
 | Model provider fails | `/api/assistant` returns 502, the AI Config records an error, and the rest of the page is unaffected. |
+| Model answer cut off, refused or empty | `/api/assistant` returns 502 with the reason (for example "cut off at max_tokens 300"), and the AI Config records an error. |
+| No `MODEL_API_KEY` | The assistant runs as a dry run: it shows what LaunchDarkly served and calls no model. |
 
 ## Limits and what changes at scale
 

@@ -4,9 +4,9 @@ For whoever is on call during a release of ABC Freight.
 
 ## Release a feature
 
-1. Deploy with the feature's flag **off**. Both code paths ship together; the deploy changes nothing users see.
-2. Optional: target your own organization first (individual target) and check the feature in production.
-3. Turn the flag on in LaunchDarkly, or widen its rules. Open browsers update within about a second.
+1. Deploy with the feature's flag **off** and its default rule serving the old behavior. Both code paths ship together; the deploy changes nothing users see.
+2. Target your own organization (individual target `abc-freight`), turn the flag on, and check the feature in production as an internal user, such as the Quinn visitor.
+3. Release: change the default rule, or widen the rules. Open browsers update within about a second.
 4. Watch errors and the Slack channel for the next 15 minutes.
 
 ## Roll back
@@ -34,7 +34,7 @@ A monitoring tool can call the same trigger URL when an alert fires, which turns
 
 1. The flag shows **Off** in LaunchDarkly, and its history names the trigger or token that turned it off.
 2. Slack shows the change, if the integration is set up.
-3. An open page has lost the feature without a refresh. The footer bar shows the flag's current value.
+3. An open page has lost the feature without a refresh. The footer bar shows the flag's current value and the reason `OFF`. `python scripts/explain.py` shows every visitor at once.
 4. `curl -s localhost:8000/api/state?visitor=sam` shows `"eta": null`.
 
 ## Rotate secrets
