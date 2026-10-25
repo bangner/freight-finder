@@ -6,5 +6,6 @@ __pycache__/
 .ruff_cache/
 test-results/
 
-# J's private notes and the assignment brief. Never pushed.
+# Local only, never pushed: the assignment brief and assistant notes.
 private/
+CLAUDE.md
