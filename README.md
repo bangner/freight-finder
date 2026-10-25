@@ -17,7 +17,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 You need Python 3.11 or newer, `git`, `curl`, and a LaunchDarkly account (a [free trial](https://launchdarkly.com/start-trial/) works). These steps were written on macOS and Linux; on Windows use WSL or adjust the `venv` activation command.
 
 ```bash
-git clone https://github.com/bangner/Freight-Finder-.git abc-freight && cd abc-freight
+git clone https://github.com/bangner/freight-finder.git && cd freight-finder
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then paste your SDK key into .env
@@ -67,7 +67,7 @@ The footer bar shows every flag's current value and the reason LaunchDarkly gave
 | Sam | Lone Star Freight | enterprise, US | US rules, or hidden while the experiment runs | Rule: enterprise in US. The experiment assigns the organization to `us` or `off` at random |
 | Riley | Lakeshore Logistics | pro, US | US rules | Individual target on the organization |
 | Alex | Maple Route | free, CA | Hidden | Matches nothing |
-| Quinn | ABC Freight (internal) | internal, US | Hidden | Matches nothing. Quinn is the internal tester for Part 1 |
+| Quinn | ABC Freight | internal, US | Hidden | Matches nothing. Quinn is the internal tester for Part 1 |
 | Guest | Public | free, US | Hidden | Anonymous, matches nothing |
 
 Add the individual target, then the rules, while watching an open page: only the affected visitors change. Turn the flag off and every panel disappears, because the kill switch beats targeting.
