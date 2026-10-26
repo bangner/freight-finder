@@ -18,11 +18,11 @@ output "trigger_url" {
 output "manual_steps" {
   description = "What Terraform cannot set up."
   value       = <<-EOT
-    Finish in LaunchDarkly (docs/SETUP.md, part A, has the details):
+    The required demo needs nothing more. Optional extras (docs/SETUP.md, section 5):
     1. AI Config dispatcher-assistant: turn targeting on in Test, serve concise by default,
        and add a rule serving friendly when organization plan is enterprise.
-    2. For the experiments: mark the organization context kind "Available for experiments",
-       then apply again with -var create_booking_metric=true.
-    3. Optional: the two experiments and Slack (docs/SETUP.md, B6 to B8).
+    2. For the bookings experiment: mark the organization context kind "Available for
+       experiments", then apply again with -var create_booking_metric=true.
+    3. The two experiments and Slack.
   EOT
 }
