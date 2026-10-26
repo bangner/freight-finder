@@ -1,4 +1,4 @@
-# Adopt a project you already built by hand (docs/SETUP.md, part B), so
+# Adopt a project you already built by hand (docs/SETUP.md, Route B), so
 # Terraform manages it from now on:
 #
 #   cp imports.tf.example imports.tf        (imports.tf is git-ignored)

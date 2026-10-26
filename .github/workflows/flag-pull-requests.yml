@@ -2,8 +2,8 @@ name: LaunchDarkly flags in pull requests
 
 # Comments on each pull request with the flags it adds, changes or removes, and
 # links the pull request from those flags in LaunchDarkly. Uses the same
-# LD_ACCESS_TOKEN secret as code-references.yml (docs/SETUP.md, B9). Without
-# it, or on a pull request from a fork, the job is skipped.
+# LD_ACCESS_TOKEN secret as code-references.yml (docs/SETUP.md, "Code
+# references"). Without it, or on a pull request from a fork, the job is skipped.
 on:
   pull_request:
 
