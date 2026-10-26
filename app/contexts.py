@@ -30,11 +30,11 @@ class Visitor:
 
 
 # Fictional shippers. The comment on each line is the hours-of-service value
-# it should get once the flag is set up as described in docs/LAUNCHDARKLY_SETUP.md.
+# it should get once the flag is set up as described in docs/SETUP.md.
 VISITORS: dict[str, Visitor] = {
     v.key: v
     for v in [
-        # canada: rule "enterprise in CA"
+        # canada: rule 2, "Enterprise in Canada"
         Visitor(
             key="dana",
             name="Dana",
@@ -48,7 +48,7 @@ VISITORS: dict[str, Visitor] = {
             fleet_size=120,
             beta_tester=False,
         ),
-        # us: rule "enterprise in US"
+        # us: rule 1, "Enterprise in US"
         Visitor(
             key="sam",
             name="Sam",

@@ -13,7 +13,7 @@ test-results/
 terraform.tfstate.d/
 *.tfvars
 crash*.log
-# Import blocks for adopting a hand-built project (terraform/README.md).
+# Import blocks for adopting a hand-built project (terraform/imports.tf.example).
 terraform/imports.tf
 
 # Local only, never pushed: the assignment brief and assistant notes.

@@ -1,6 +1,6 @@
 """Ask the dispatcher assistant real questions as synthetic dispatchers, for the AI Config experiment.
 
-    python scripts/simulate_assistant.py --users 60
+    python scripts/simulate_assistant.py --users 500
 
 Each synthetic dispatcher works for a new self-serve shipper (pro plan), so the
 AI Config's default rule, where the experiment runs, decides their variation.
@@ -9,8 +9,8 @@ page uses, so LaunchDarkly receives the real duration, token and success events
 for every answer.
 
 The dispatchers are synthetic; the model calls and the measurements are real.
-This needs MODEL_API_KEY and costs money: about 2 cents per friendly answer and
-a small fraction of a cent per concise one, so 60 dispatchers cost under a dollar.
+This needs MODEL_API_KEY and costs money: about half a cent per friendly answer
+and a fiftieth of a cent per concise one, so 500 dispatchers cost under $2.
 """
 
 import argparse

@@ -9,28 +9,39 @@ from app.loads import Load
 
 # --- Live ETA predictions (flag: eta-predictions) ---------------------------
 
-# Canned model output, keyed by position in the visitor's load list.
+# Canned model output, keyed by position in the visitor's load list. The
+# predicted arrival is the load's own scheduled arrival plus the delay, so the
+# scheduled time, predicted time and delay always agree, in either region.
 _ETA_MODEL = [
-    {
-        "predicted_arrival": "Today 16:52",
-        "delay_minutes": 22,
-        "risk": "medium",
-        "reason": "Heavy traffic on the route",
-    },
-    {"predicted_arrival": "Today 19:10", "delay_minutes": -5, "risk": "low", "reason": "On schedule"},
-    {
-        "predicted_arrival": "Tomorrow 10:40",
-        "delay_minutes": 100,
-        "risk": "high",
-        "reason": "Late pickup; dock appointment moved",
-    },
-    {"predicted_arrival": "Tomorrow 06:50", "delay_minutes": 5, "risk": "low", "reason": "On schedule"},
-    {"predicted_arrival": "Delivered", "delay_minutes": 0, "risk": "low", "reason": "Delivered"},
+    {"delay_minutes": 22, "risk": "medium", "reason": "Heavy traffic on the route"},
+    {"delay_minutes": -5, "risk": "low", "reason": "On schedule"},
+    {"delay_minutes": 100, "risk": "high", "reason": "Late pickup; dock appointment moved"},
+    {"delay_minutes": 5, "risk": "low", "reason": "On schedule"},
+    {"delay_minutes": 0, "risk": "low", "reason": "Delivered"},
 ]
+
+_DAYS = ["Today", "Tomorrow"]
+
+
+def _shift(when: str, minutes: int) -> str:
+    """'Today 16:30' shifted by 22 minutes is 'Today 16:52'. Rolls over to Tomorrow."""
+    day, clock = when.split()
+    hour, minute = map(int, clock.split(":"))
+    total = _DAYS.index(day) * 24 * 60 + hour * 60 + minute + minutes
+    day_index, total = divmod(total, 24 * 60)
+    return f"{_DAYS[day_index]} {total // 60:02d}:{total % 60:02d}"
 
 
 def eta_predictions(loads: list[Load]) -> list[dict]:
-    return [{"load_id": load.id, **prediction} for load, prediction in zip(loads, _ETA_MODEL, strict=True)]
+    predictions = []
+    for load, prediction in zip(loads, _ETA_MODEL, strict=True):
+        if load.status == "Delivered":
+            prediction = {"delay_minutes": 0, "risk": "low", "reason": "Delivered"}
+            arrival = "Delivered"
+        else:
+            arrival = _shift(load.scheduled_arrival, prediction["delay_minutes"])
+        predictions.append({"load_id": load.id, "predicted_arrival": arrival, **prediction})
+    return predictions
 
 
 class PredictionServiceError(RuntimeError):

@@ -8,7 +8,7 @@
 #
 # It uses, in order:
 #   1. LD_TRIGGER_URL: the flag trigger you created on eta-predictions with the action
-#      "Turn the flag off" (docs/LAUNCHDARKLY_SETUP.md, step 4). Needs no API token.
+#      "Turn the flag off" (docs/SETUP.md). Needs no API token.
 #   2. LD_API_TOKEN + LD_PROJECT_KEY + LD_ENV_KEY: the REST API, for any flag.
 #      LD_API_BASE defaults to https://app.launchdarkly.com (change it for other instances).
 #

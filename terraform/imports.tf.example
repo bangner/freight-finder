@@ -1,5 +1,5 @@
-# Adopt a project you already built by hand with docs/LAUNCHDARKLY_SETUP.md, so
-# Terraform manages it from now on. terraform/README.md walks through it:
+# Adopt a project you already built by hand (docs/SETUP.md, part B), so
+# Terraform manages it from now on:
 #
 #   cp imports.tf.example imports.tf        (imports.tf is git-ignored)
 #   set trigger_id below, then: terraform plan

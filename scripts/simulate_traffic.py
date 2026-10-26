@@ -13,6 +13,7 @@ they say nothing about real shippers.
 
 import argparse
 import random
+import secrets
 import sys
 from collections import Counter
 from pathlib import Path
@@ -78,7 +79,8 @@ def main() -> None:
         sys.exit("Could not reach LaunchDarkly. Check the SDK key and your network.")
 
     rng = random.Random(args.seed)
-    run = f"{rng.randrange(16**6):06x}"  # new context keys each run, so each run adds new visitors
+    # Not from rng: a repeated --seed must still create new visitors, not resend the same ones.
+    run = secrets.token_hex(3)
     results = simulate(client, args.visitors, {"off": args.rate_off, "us": args.rate_us}, rng, run)
     client.close()  # flushes every exposure and conversion event
 

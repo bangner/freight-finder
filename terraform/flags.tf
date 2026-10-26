@@ -2,7 +2,7 @@
 # lifecycle. It only creates the starting targeting in Test; after that,
 # targeting belongs to LaunchDarkly (lifecycle ignore_changes below), so a later
 # apply never undoes a release, a trigger rollback or a running experiment.
-# docs/decisions/0006-launchdarkly-configuration-as-code.md explains the split.
+# docs/ARCHITECTURE.md, "Design choices", has the reason.
 
 # Part 1: the Live ETA panel. A temporary release flag, removed once the panel
 # is fully released (docs/RUNBOOK.md, "Retire a release flag").

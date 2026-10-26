@@ -1,7 +1,7 @@
 # Extra credit: the dispatcher assistant's models and prompts. Who gets which
 # variation (enterprise customers get friendly, everyone else concise) is set
 # in LaunchDarkly: the provider has no resource for AI Config targeting
-# (docs/LAUNCHDARKLY_SETUP.md, step 7).
+# (docs/SETUP.md).
 resource "launchdarkly_ai_config" "dispatcher_assistant" {
   project_key = launchdarkly_project.abc_freight.key
   key         = "dispatcher-assistant" # must match ASSISTANT_CONFIG in app/flags.py

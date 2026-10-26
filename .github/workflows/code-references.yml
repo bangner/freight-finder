@@ -3,10 +3,11 @@ name: LaunchDarkly code references
 # Shows, on each flag in LaunchDarkly, where its key appears in this repository.
 # That makes it easy to find code to remove when a flag is retired (docs/RUNBOOK.md).
 # Needs a LaunchDarkly access token in the repository secret LD_ACCESS_TOKEN
-# (docs/LAUNCHDARKLY_SETUP.md, step 9). Without it the scan is skipped, not failed.
+# (docs/SETUP.md, B9). Without it the scan is skipped, not failed.
 on:
   push:
     branches: [main]
+  workflow_dispatch: # rescan by hand, e.g. after adding the secret
 
 permissions:
   contents: read

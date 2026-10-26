@@ -1,0 +1,37 @@
+name: LaunchDarkly flags in pull requests
+
+# Comments on each pull request with the flags it adds, changes or removes, and
+# links the pull request from those flags in LaunchDarkly. Uses the same
+# LD_ACCESS_TOKEN secret as code-references.yml (docs/SETUP.md, B9). Without
+# it, or on a pull request from a fork, the job is skipped.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write # the comment
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  find-flags:
+    name: Find flags in the diff
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      LD_ACCESS_TOKEN: ${{ secrets.LD_ACCESS_TOKEN }}
+    steps:
+      - name: Skip without a token
+        if: env.LD_ACCESS_TOKEN == ''
+        run: echo "LD_ACCESS_TOKEN is not set, so the flag scan is skipped."
+      - uses: actions/checkout@v7
+        if: env.LD_ACCESS_TOKEN != ''
+      - uses: launchdarkly/find-code-references-in-pull-request@v2
+        if: env.LD_ACCESS_TOKEN != ''
+        with:
+          project-key: abc-freight
+          environment-key: test # flag links point at the environment the demo uses
+          access-token: ${{ secrets.LD_ACCESS_TOKEN }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

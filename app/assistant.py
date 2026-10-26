@@ -27,7 +27,9 @@ log = logging.getLogger(__name__)
 # If LaunchDarkly is unreachable or the AI Config is missing, the assistant is
 # disabled and its panel stays hidden. The rest of the page is unaffected.
 _DISABLED = AICompletionConfigDefault(enabled=False)
-_DEFAULT_MAX_TOKENS = 400
+# Used only when the AI Config sets no max_tokens. Thinking counts toward it,
+# so a few hundred tokens often cuts an answer off.
+_DEFAULT_MAX_TOKENS = 2000
 
 # Optional "effort" on the AI Config variation (a model or custom parameter).
 # Lower effort means less thinking, so fewer output tokens and a smaller bill.
@@ -43,6 +45,10 @@ class AssistantUnavailable(RuntimeError):
 
 class AssistantNoAnswer(RuntimeError):
     """The model ran but gave no usable answer: it was cut off, or it declined."""
+
+
+class AssistantModelError(RuntimeError):
+    """The model provider call failed. Already logged and recorded as an error on the AI Config."""
 
 
 class ModelReply(NamedTuple):
@@ -149,11 +155,11 @@ def ask(visitor: Visitor, context: Context, loads: list[Load], question: str, se
     started = time.monotonic()
     try:
         reply = _call_model(settings.model_api_key, config.model.name, max_tokens, effort, system, history)
-    except Exception:
+    except Exception as error:
         tracker.track_duration(int((time.monotonic() - started) * 1000))
         tracker.track_error()
         log.exception("Model call failed for %s", ASSISTANT_CONFIG)
-        raise
+        raise AssistantModelError("The assistant could not answer right now") from error
     duration_ms = int((time.monotonic() - started) * 1000)
     tracker.track_duration(duration_ms)
     tokens_in, tokens_out = reply.input_tokens, reply.output_tokens
@@ -171,7 +177,7 @@ def ask(visitor: Visitor, context: Context, loads: list[Load], question: str, se
         "model": config.model.name,
         "feedback_token": tracker.resumption_token,
         "dry_run": False,
-        # The same time and tokens reported to LaunchDarkly above (scripts/simulate_assistant.py sums them).
+        # The same time and tokens reported to LaunchDarkly above (scripts/simulate_assistant.py reports them).
         "usage": {"duration_ms": duration_ms, "input_tokens": tokens_in, "output_tokens": tokens_out},
     }
 

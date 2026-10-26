@@ -1,7 +1,8 @@
 # pip install pre-commit && pre-commit install
 repos:
+  # Same ruff version as requirements-dev.txt, so the hook and CI agree.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.17.2
     hooks:
       - id: ruff-check
       - id: ruff-format

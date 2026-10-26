@@ -15,7 +15,7 @@ from app import __version__
 log = logging.getLogger(__name__)
 
 # Flag keys. These must match the flags you create in LaunchDarkly
-# (see docs/LAUNCHDARKLY_SETUP.md). The fallback values below are what the
+# (terraform/ creates them; docs/SETUP.md covers both ways). The fallback values below are what the
 # SDK returns if a flag is missing or LaunchDarkly has never been reachable,
 # so each one is the safe, original behavior.
 # Lifecycle: a temporary release flag is removed once its feature is fully

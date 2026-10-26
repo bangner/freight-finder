@@ -1,0 +1,11 @@
+# Read by both code-reference workflows. Without aliases, LaunchDarkly finds only
+# the quoted keys in app/flags.py. With them it also finds the code that uses
+# each flag through its constant, and the Terraform and Python names derived from it.
+aliases:
+  - type: literal
+    flags:
+      eta-predictions:
+        - ETA_FLAG
+      driver-hours-of-service:
+        - HOS_FLAG
+  - type: snakecase # eta_predictions, driver_hours_of_service

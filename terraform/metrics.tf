@@ -1,4 +1,4 @@
-# Hours-of-service experiment (docs/EXPERIMENT.md): did the organization book a
+# Hours-of-service experiment (docs/EXPERIMENTS.md): did the organization book a
 # load at least once. Created only once the organization context kind is
 # available for experiments (see var.create_booking_metric).
 resource "launchdarkly_metric" "book_load_clicked" {
@@ -16,7 +16,7 @@ resource "launchdarkly_metric" "book_load_clicked" {
   tags                         = local.tags
 }
 
-# AI Config experiment (docs/AI_EXPERIMENT.md). The AI SDK sends both events for
+# AI Config experiment (docs/EXPERIMENTS.md). The AI SDK sends both events for
 # every answer (app/assistant.py). For both, lower is better: left at the
 # default, LaunchDarkly would score a slower or longer answer as an improvement.
 resource "launchdarkly_metric" "assistant_response_time" {

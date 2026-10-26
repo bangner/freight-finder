@@ -190,7 +190,10 @@ def create_app(ld_config: Config | None = None, settings: Settings | None = None
         except assistant.AssistantNoAnswer as error:
             # Cut off or declined: say so, rather than showing half an answer.
             raise HTTPException(502, str(error)) from error
+        except assistant.AssistantModelError as error:
+            raise HTTPException(502, str(error)) from error  # assistant.ask has logged it
         except Exception as error:
+            log.exception("Assistant request failed")
             raise HTTPException(502, "The assistant could not answer right now") from error
 
     @app.post("/api/assistant/feedback", status_code=202)

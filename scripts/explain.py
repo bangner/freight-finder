@@ -5,7 +5,7 @@
 For every visitor in the page's "Viewing as" menu, prints each flag's value
 and the evaluation reason LaunchDarkly gives for it (OFF, FALLTHROUGH,
 TARGET_MATCH, RULE_MATCH, ...), plus the AI Config variation and model the
-assistant would use. Run it after each step of docs/LAUNCHDARKLY_SETUP.md to
+assistant would use. Run it after each step of docs/SETUP.md to
 check the setup, or when a visitor sees something you did not expect.
 ERROR (FLAG_NOT_FOUND) means the key in LaunchDarkly does not match app/flags.py.
 

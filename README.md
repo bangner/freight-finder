@@ -1,150 +1,109 @@
 # ABC Freight: feature flags for a shipper portal
 
-A small FastAPI app that shows how LaunchDarkly lets a team release faster without adding risk. ABC Freight is a fictional shipper portal: a dispatcher signs in and sees their company's loads. Two new features ship behind flags, and a dispatcher assistant is driven by an AI Config.
+A shipper portal that uses LaunchDarkly to test features in production, release them instantly and roll them back in a second. Python (FastAPI), the LaunchDarkly server-side SDK, Server-Sent Events and plain JavaScript.
 
-| Part | What it shows | LaunchDarkly feature |
-| --- | --- | --- |
-| 1. Release and remediate | The Live ETA panel is tested in production by ABC Freight's own staff, released to every customer, and rolled back with a one-line `curl`, all in an open browser with no reload. | Boolean flag, individual targeting, streaming updates, flag trigger |
-| 2. Target | The hours-of-service panel, a new component on the portal's landing page, reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
-| Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
-| Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. An experiment compares the two variations on speed and output: [results](docs/AI_EXPERIMENT.md). | AI Config, variations, AI metrics, feedback |
-| Extra: Integrations | Every flag change, including the rollback, posts to Slack. LaunchDarkly shows where each flag is used in this repo. | Slack app, code references |
-| Extra: Configuration as code | The LaunchDarkly setup, from the flags to the assistant's prompts, is Terraform code. The demo project was adopted into it, and `terraform plan` shows it matches. | Terraform provider |
+![The Live ETA panel after release](docs/images/2-eta-on.png)
 
-![The ETA panel after the flag is turned on](docs/images/2-eta-on.png)
+## What the brief asks, and where it is
+
+| Part | What it shows | LaunchDarkly features | Where |
+| --- | --- | --- | --- |
+| 1. Release and remediate | Live ETA panel: tested by ABC Freight's own staff, released to everyone, rolled back by a trigger. The page never reloads. | Boolean flag, individual target, change listener, trigger | `app/flags.py`, `app/main.py`, `scripts/rollback.sh` |
+| 2. Target | Hours-of-service panel: one shipper by name, enterprise shippers by region | Multi-context, individual and rule-based targeting | `app/contexts.py` |
+| Extra: Experimentation | Does the panel lift bookings? +42% on synthetic traffic (simulator set to 8% → 12%) | Metric, experiment | [Experiments](docs/EXPERIMENTS.md) |
+| Extra: AI Configs | The assistant's model and prompt change with no deploy; an experiment picks the variation | AI Config, AI metrics, feedback | `app/assistant.py` |
+| Extra: Integrations | Flag changes post to Slack; LaunchDarkly shows where each flag is used; pull requests get a comment listing the flags they touch | Slack app, code references, PR flag comments | [Setup](docs/SETUP.md) |
+| Extra: Configuration as code | The LaunchDarkly setup is Terraform; `terraform plan` shows the live project matches | Terraform provider | `terraform/` |
 
 ## Quickstart
 
-You need Python 3.11 or newer, `git`, `curl`, and a LaunchDarkly account (a [free trial](https://launchdarkly.com/start-trial/) works). These steps were written on macOS and Linux; on Windows use WSL or adjust the `venv` activation command.
+Needs Python 3.11+, a LaunchDarkly account (a [trial](https://launchdarkly.com/start-trial/) works), and Terraform 1.7+ for the quick setup. Written for macOS and Linux; on Windows use WSL.
 
 ```bash
 git clone https://github.com/bangner/freight-finder.git && cd freight-finder
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # then paste your SDK key into .env
-python -m app               # http://127.0.0.1:8000
+cp .env.example .env
 ```
 
-Before running, set up LaunchDarkly. The quickest way is Terraform 1.7 or newer: [terraform/README.md](terraform/README.md) creates the project, flags, trigger, metrics and AI Config with `terraform apply`, and lists the few steps it cannot do. To do it by hand, [docs/LAUNCHDARKLY_SETUP.md](docs/LAUNCHDARKLY_SETUP.md) walks through every click. The app runs without either: every feature simply stays off.
+1. Set up LaunchDarkly with Terraform or by hand: [docs/SETUP.md](docs/SETUP.md).
+2. Put the SDK key and the trigger URL in `.env`.
+3. Run `python -m app` and open http://127.0.0.1:8000.
 
-Prefer Docker? `docker build -t abc-freight . && docker run --rm -p 8000:8000 --env-file .env abc-freight`
+Docker instead: `docker build -t abc-freight . && docker run --rm -p 8000:8000 --env-file .env abc-freight`
 
-### Environment variables
-
-| Variable | Needed for | Required |
+| Variable | For | Required |
 | --- | --- | --- |
-| `LAUNCHDARKLY_SDK_KEY` | Everything. Server-side SDK key for your Test environment (starts with `sdk-`). | Yes |
-| `LD_TRIGGER_URL` | `scripts/rollback.sh` (Part 1 remediation) | For the rollback demo |
-| `LD_API_TOKEN`, `LD_PROJECT_KEY`, `LD_ENV_KEY` | REST fallback for `scripts/rollback.sh` | No |
-| `MODEL_API_KEY` | Real answers from the dispatcher assistant (an Anthropic API key). Without it the assistant runs as a free dry run. | No |
-| `ASSISTANT_DRY_RUN` | Set to `true` to keep the assistant in dry-run mode even with a key | No |
+| `LAUNCHDARKLY_SDK_KEY` | Everything. Server-side key for the Test environment, starts with `sdk-` | Yes |
+| `LD_TRIGGER_URL` | `scripts/rollback.sh` | For Part 1 |
+| `LD_API_TOKEN`, `LD_PROJECT_KEY`, `LD_ENV_KEY` | Rollback through the REST API instead | No |
+| `MODEL_API_KEY` | Real assistant answers (Anthropic). Without it, a free dry run | No |
+| `ASSISTANT_DRY_RUN` | `true` keeps the dry run even with a key | No |
 
-The app refuses to start without `LAUNCHDARKLY_SDK_KEY`, and says so. No key or token is ever sent to the browser. Terraform's access token goes in `terraform/.env`, not here: the app never needs it.
+No key or token ever reaches the browser.
 
-## Demo script
+## Demo
 
-Open http://127.0.0.1:8000 and leave the tab open for the whole demo. Nothing below reloads the page.
+Keep one tab open: nothing below reloads the page. The footer shows each flag's value and LaunchDarkly's reason, such as `TARGET_MATCH`. `python scripts/explain.py` prints the same for every visitor.
 
-The footer bar shows every flag's current value and the reason LaunchDarkly gave for it, such as `TARGET_MATCH` or `RULE_MATCH (rule 2)`. `python scripts/explain.py` prints the same for every visitor at once.
+**Part 1: release and remediate**
 
-**Part 1: release and remediate.** Start with `eta-predictions` off and its default rule serving `false` (setup step 2).
+1. Start with `eta-predictions` off and its default rule serving `false`.
+2. Turn the flag on. Guest sees nothing; Quinn, ABC Freight's own QA engineer, sees the ETA panel.
+3. As Quinn, click **Refresh predictions**: it times out. The bug is found before any customer sees it.
+4. Release anyway: set the default rule to `true`. Every page shows the panel within a second.
+5. Roll back with `scripts/rollback.sh`. The trigger turns the flag off, every page drops the panel, and Slack posts the change.
 
-1. Viewing as Guest, the page shows only the loads table.
-2. **Test in production.** Turn `eta-predictions` on. Guest still sees nothing. Switch **Viewing as** to Quinn, an ABC Freight QA engineer: the **Live ETA predictions** panel is there, because ABC Freight's own organization is individually targeted.
-3. As Quinn, click **Refresh predictions**. It fails with a timeout. This is the deliberate bug, here found by an internal tester before any customer.
-4. **Release.** For the demo, release anyway: change the default rule to `true`. Every visitor's page shows the panel within a second, without a reload.
-5. **Remediate** from a terminal:
-   ```bash
-   scripts/rollback.sh
-   ```
-   The flag trigger turns the flag off. The panel disappears from every open page in under a second, and Slack posts the change. Run the command again: it is safe to repeat.
-6. Reset for the next run: set the default rule back to `false`.
+**Part 2: targeting.** Switch **Viewing as**:
 
-**Part 2: targeting.** Switch visitors with **Viewing as** at the top right.
+| Visitor | Organization (plan, region) | Hours-of-service panel | Reason |
+| --- | --- | --- | --- |
+| Dana | Prairie Haul (enterprise, CA) | Canadian rules | Rule 2, Enterprise in Canada |
+| Sam | Lone Star Freight (enterprise, US) | US rules, or none while the experiment runs | Rule 1, Enterprise in US |
+| Riley | Lakeshore Logistics (pro, US) | US rules | Individual target |
+| Alex, Quinn, Guest | Free, internal, anonymous | None | No match |
 
-| Visitor | Organization | Plan, region | Hours-of-service panel | Why |
-| --- | --- | --- | --- | --- |
-| Dana | Prairie Haul | enterprise, CA | Canadian rules | Rule: enterprise in CA |
-| Sam | Lone Star Freight | enterprise, US | US rules, or hidden while the experiment runs | Rule: enterprise in US. The experiment assigns the organization to `us` or `off` at random |
-| Riley | Lakeshore Logistics | pro, US | US rules | Individual target on the organization |
-| Alex | Maple Route | free, CA | Hidden | Matches nothing |
-| Quinn | ABC Freight | internal, US | Hidden | Matches nothing. Quinn is the internal tester for Part 1 |
-| Guest | Public | free, US | Hidden | Anonymous, matches nothing |
+Turning the flag off hides every panel: the kill switch beats targeting.
 
-Add the individual target, then the rules, while watching an open page: only the affected visitors change. Turn the flag off and every panel disappears, because the kill switch beats targeting.
+**Experimentation.** `python scripts/simulate_traffic.py --visitors 2500 --seed 2026` sends synthetic shippers through the experiment. Results: [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md).
 
-**Experimentation.** Start the experiment from the setup guide, then send synthetic traffic:
+**AI Configs.** Ask "Which loads arrive today?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Enterprise shippers (Sam, Dana) get `friendly`; everyone else gets `concise`.
 
-```bash
-python scripts/simulate_traffic.py --visitors 2500 --seed 2026
-```
-
-[docs/EXPERIMENT.md](docs/EXPERIMENT.md) has the sizing, the result (`us` lifted bookings from 8.1% to 11.9%, p = 0.002) and the decision.
-
-**AI Configs.** With the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Sam and Dana (enterprise) get the `friendly` variation; everyone else gets `concise`. Without `MODEL_API_KEY` the answer is a dry run that shows exactly what LaunchDarkly served.
-
-An experiment on the AI Config compares the two variations on response time and output tokens, measured from real answers: `python scripts/simulate_assistant.py --users 500` ([results and decision](docs/AI_EXPERIMENT.md)).
-
-More screenshots are in [docs/images](docs/images). The browser test takes the numbered ones, so the assistant's answer there comes from a test stub, not a real model. The `ld-` ones are LaunchDarkly's own screens.
-
-## How it works
-
-The server owns every flag decision. One SDK client keeps a streaming connection to LaunchDarkly. Each open browser holds a Server-Sent Events (SSE) connection, and each connection registers an SDK flag-value-change listener for that visitor's context. When a flag changes, the listener fires, the server re-evaluates, and it pushes the new page state. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-```text
-LaunchDarkly ──stream──▶ SDK (FastAPI) ──listener──▶ /events (SSE) ──▶ open browsers
-     ▲
-     └── dashboard toggle, or scripts/rollback.sh (flag trigger / REST API)
-```
-
-## Repository map
-
-| Path | What it is |
+| Before the release | The bug, found by an internal tester |
 | --- | --- |
-| `app/main.py` | FastAPI app: SDK lifecycle, routes, the SSE stream |
-| `app/flags.py` | Flag keys, fallbacks, and the SDK-listener-to-asyncio bridge |
-| `app/contexts.py` | Preset visitors and the user + organization multi-context |
-| `app/features.py` | The two new features, only called behind their flags |
-| `app/assistant.py` | The AI Config-driven assistant and its metrics |
-| `static/` | Plain HTML, CSS and JavaScript (no framework) |
-| `scripts/rollback.sh` | Remediation: turn a flag off |
-| `scripts/simulate_traffic.py` | Synthetic traffic for the hours-of-service experiment |
-| `scripts/simulate_assistant.py` | Real questions from synthetic dispatchers, for the AI Config experiment |
-| `scripts/explain.py` | Every visitor's flag values and the reasons, from your LaunchDarkly environment |
-| `tests/` | Unit, integration and browser tests; no keys or network needed |
-| `terraform/` | The LaunchDarkly setup as code: project, flags, trigger, metrics, AI Config |
-| `docs/` | Setup, architecture, runbook, testing, decision records |
+| ![Loads table only](docs/images/1-original.png) | ![Refresh predictions times out](docs/images/3-eta-error.png) |
+| **Dana: Canadian rules** | **The assistant (test stub answer)** |
+| ![Hours-of-service panel with Canadian rules](docs/images/4-hos-canada.png) | ![Dispatcher assistant panel](docs/images/5-assistant.png) |
 
-## Testing
+## Tests
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                    # about 60 tests, a few seconds, no LaunchDarkly account needed
-python -m playwright install chromium && pytest tests/e2e   # real browser, flags flipped live
-cd terraform && terraform init -backend=false && terraform test   # Terraform, mocked provider
+pytest                                                    # no LaunchDarkly account needed
+python -m playwright install chromium && pytest tests/e2e # real browser
+cd terraform && terraform init -backend=false && terraform test
 ```
 
-The tests use the SDK's `TestData` source, so they need no network and no keys. The browser test opens the page, flips flags underneath it, and checks the page never reloads. [docs/TESTING.md](docs/TESTING.md) has the manual test plan too.
+- 66 Python tests and 5 Terraform tests. They use the SDK's `TestData` source and a mocked Terraform provider: no keys, no network.
+- The browser test flips flags under an open page and checks it never reloads.
+- CI runs everything on every push, plus a secret scan and a Docker build.
 
-## Docs
+## Repository
 
-- [LaunchDarkly setup](docs/LAUNCHDARKLY_SETUP.md): project, flags, targeting, trigger, metric, experiment, AI Config, Slack
-- [Terraform](terraform/README.md): the same setup as code, what it owns, and how to adopt a project built by hand
-- [Architecture](docs/ARCHITECTURE.md): design, failure behavior, limits, and what changes with more instances
-- [Runbook](docs/RUNBOOK.md): release, roll back, verify, retire a release flag, rotate secrets
-- [Experiment](docs/EXPERIMENT.md): hours of service and bookings: sizing, result and decision
-- [AI Config experiment](docs/AI_EXPERIMENT.md): concise or friendly assistant: result and decision
-- [Testing](docs/TESTING.md): automated tests and the manual test plan
-- [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag, and what Terraform owns
+| Path | Contents |
+| --- | --- |
+| `app/` | FastAPI app: flags and listeners (`flags.py`), contexts, the two features, the assistant |
+| `static/` | HTML, CSS and JavaScript, no framework |
+| `scripts/` | Rollback, the two simulators, `explain.py` |
+| `terraform/` | The LaunchDarkly setup as code |
+| `tests/` | Unit, integration and browser tests |
+| `docs/` | [Setup](docs/SETUP.md), [Architecture](docs/ARCHITECTURE.md), [Runbook](docs/RUNBOOK.md), [Experiments](docs/EXPERIMENTS.md) |
 
-## Known limitations
+## Limitations
 
-- Single process, in-memory SSE connections. Fine for a demo; see the architecture doc for scaling.
-- Visitors are presets. There is no login.
-- Every guest shares one anonymous context key. A production site would give each anonymous visitor its own key, so rollouts and experiments count guests separately.
-- All data is fictional and static. The hours-of-service figures follow published US and Canadian limits in simplified form and are not a compliance tool.
-- The assistant supports Anthropic models only.
+- One process, with SSE connections in memory. [Architecture](docs/ARCHITECTURE.md) covers scaling.
+- Preset visitors, no login. Guests share one anonymous key; production would give each its own.
+- Fictional data. The hours-of-service figures are simplified and not for compliance.
+- Anthropic models only.
 
-## License
-
-MIT
+MIT license.
