@@ -1,0 +1,35 @@
+name: LaunchDarkly code references
+
+# Shows, on each flag in LaunchDarkly, where its key appears in this repository.
+# That makes it easy to find code to remove when a flag is retired (docs/RUNBOOK.md).
+# Needs a LaunchDarkly access token in the repository secret LD_ACCESS_TOKEN
+# (docs/LAUNCHDARKLY_SETUP.md, step 9). Without it the scan is skipped, not failed.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-references:
+    name: Find flag references
+    runs-on: ubuntu-latest
+    env:
+      LD_ACCESS_TOKEN: ${{ secrets.LD_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 11  # lets the scan notice flag keys removed in the last 10 commits
+      - name: Skip without a token
+        if: env.LD_ACCESS_TOKEN == ''
+        run: echo "LD_ACCESS_TOKEN is not set, so the code references scan is skipped."
+      - uses: launchdarkly/find-code-references@v2
+        if: env.LD_ACCESS_TOKEN != ''
+        with:
+          accessToken: ${{ secrets.LD_ACCESS_TOKEN }}
+          projKey: abc-freight

@@ -8,7 +8,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 | 2. Target | The hours-of-service panel, a new component on the portal's landing page, reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
 | Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
 | Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. An experiment compares the two variations on speed and output: [results](docs/AI_EXPERIMENT.md). | AI Config, variations, AI metrics, feedback |
-| Extra: Integrations | Every flag change, including the rollback, posts to Slack. | Slack app |
+| Extra: Integrations | Every flag change, including the rollback, posts to Slack. LaunchDarkly shows where each flag is used in this repo. | Slack app, code references |
 
 ![The ETA panel after the flag is turned on](docs/images/2-eta-on.png)
 

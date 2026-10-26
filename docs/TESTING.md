@@ -22,7 +22,7 @@ One detail matters here. `TestData` normally writes straight into the SDK's flag
 | `tests/test_scripts.py` | Rollback through the trigger and the REST fallback (against a local fake server), repeatability, the traffic simulator, the assistant simulator, `explain.py` |
 | `tests/e2e/test_browser.py` | Chromium on a real server: the full Part 1 demo (internal tester first, then everyone), Part 2 and the assistant, checking that the page never reloads |
 
-CI runs the tests on Python 3.11, 3.12 and 3.13, the browser test, a gitleaks secret scan and a Docker build on every push.
+CI runs the tests on Python 3.11, 3.12 and 3.13, the browser test, a gitleaks secret scan and a Docker build on every push. A second workflow sends flag code references to LaunchDarkly once the `LD_ACCESS_TOKEN` secret is set.
 
 ## Manual test plan
 

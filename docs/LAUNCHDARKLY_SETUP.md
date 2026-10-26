@@ -1,6 +1,6 @@
 # LaunchDarkly setup
 
-Everything the app expects to find in LaunchDarkly, in the order you need it. Steps 1 to 4 cover Part 1, step 5 covers Part 2, and steps 6 to 8 are the extra credit. Use the **Test** environment throughout.
+Everything the app expects to find in LaunchDarkly, in the order you need it. Steps 1 to 4 cover Part 1, step 5 covers Part 2, and steps 6 to 9 are the extra credit. Use the **Test** environment throughout.
 
 LaunchDarkly's UI changes over time. If a label here does not match what you see, the linked LaunchDarkly doc for that step has the current wording.
 
@@ -180,3 +180,19 @@ Reference: [AI Configs quickstart](https://launchdarkly.com/docs/home/ai-configs
 The Slack app is not available on LaunchDarkly's EU or federal instances; use Slack incoming webhooks there.
 
 Reference: [Slack app](https://launchdarkly.com/docs/integrations/slack).
+
+## 9. Code references (optional)
+
+LaunchDarkly can show, on each flag, every place its key appears in this repository, which makes retiring a flag easier. The workflow `.github/workflows/code-references.yml` runs the scan on every push to `main`.
+
+1. In LaunchDarkly, open **Account settings > Authorization** and create an access token with the **Writer** role. A service token is best, because it doesn't belong to a person. Copy it; LaunchDarkly shows it only once.
+2. Store it as the repository secret `LD_ACCESS_TOKEN`, without pasting it anywhere else:
+   ```bash
+   gh secret set LD_ACCESS_TOKEN --repo <your-account>/freight-finder
+   ```
+   `gh` asks for the value and doesn't show it. The repository's **Settings > Secrets and variables > Actions** page works too.
+3. Push to `main`, or rerun the workflow. Each flag's page in LaunchDarkly then lists the files and lines that use its key.
+
+Without the secret, the workflow skips the scan and still succeeds.
+
+Reference: [find-code-references](https://github.com/launchdarkly/find-code-references).
