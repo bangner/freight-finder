@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 # so each one is the safe, original behavior.
 # Lifecycle: a temporary release flag is removed once its feature is fully
 # released (docs/RUNBOOK.md, "Retire a release flag"); long-lived flags stay.
-ETA_FLAG = "eta-predictions"  # boolean, Part 1. Temporary release flag
+ETA_FLAG = "eta-predictions"  # boolean, Part 1. Temporary release flag (retire: docs/RUNBOOK.md)
 HOS_FLAG = "driver-hours-of-service"  # string: "off" | "us" | "canada", Part 2. Long-lived
 ASSISTANT_CONFIG = "dispatcher-assistant"  # AI Config, extra credit. Long-lived
 
