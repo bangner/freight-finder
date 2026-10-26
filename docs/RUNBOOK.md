@@ -43,9 +43,15 @@ A release flag is temporary. Once `eta-predictions` has served `true` to every c
 
 1. In the code, delete the flag check and the code path for `false`: the `ETA_FLAG` gate in `app/main.py`, its entries in `app/flags.py`, the check in `/api/eta/refresh`, and the tests for the off state.
 2. Deploy. The feature now runs without asking LaunchDarkly.
-3. Archive the flag in LaunchDarkly. Do this after the deploy: code that still evaluates an archived flag gets its fallback value, `false`, and the feature would disappear.
+3. Archive the flag: delete its resources from `terraform/flags.tf` and run `terraform apply`, which archives it rather than deleting it. Do this after the deploy: code that still evaluates an archived flag gets its fallback value, `false`, and the feature would disappear. LaunchDarkly's code references (setup guide, step 9) confirm no code still uses the key.
 
 Long-lived flags stay: `driver-hours-of-service` decides which rule set each customer gets, and `dispatcher-assistant` holds the assistant's model and prompt.
+
+## Check for drift
+
+The LaunchDarkly setup is Terraform code ([terraform/README.md](../terraform/README.md)). From `terraform/`, with the access token exported, run `terraform plan`. "No changes" means LaunchDarkly matches the code. Targeting changes never show up: Terraform hands targeting to LaunchDarkly after creating it, so releases and rollbacks are not drift.
+
+Never apply a plan that destroys or replaces the project, an environment or the trigger. That would delete SDK keys or change the trigger URL.
 
 ## Rotate secrets
 
@@ -53,6 +59,7 @@ Long-lived flags stay: `driver-hours-of-service` decides which rule set each cus
 | --- | --- | --- |
 | Trigger URL | Flag > Configuration in environment > Triggers > the trigger's menu > reset URL | Update `LD_TRIGGER_URL`. No restart needed; the script reads `.env` each run. |
 | API access token | Account settings > Authorization | Update `LD_API_TOKEN`. |
+| Terraform access token | Account settings > Authorization | Update `terraform/.env`. |
 | SDK key | Project settings > Environments > reset the SDK key (LaunchDarkly can keep the old key valid for a grace period) | Update `LAUNCHDARKLY_SDK_KEY` and restart the app. |
 | Model API key | Your Anthropic console | Update `MODEL_API_KEY` and restart the app. |
 

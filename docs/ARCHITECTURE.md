@@ -34,6 +34,10 @@ The feature code lives in `app/features.py` and only runs when its flag is on. W
 
 Every evaluation uses a `user` + `organization` multi-context. Targeting rules match organization attributes (`plan`, `region`, `fleet_size`, `beta_tester`), which is how a B2B portal is rolled out. The user's `email` is a private attribute: it can be used for evaluation but is not sent to LaunchDarkly. The guest visitor is an anonymous context. Here every guest shares one key; in production each anonymous visitor needs its own key (for example a random ID kept in a cookie), or percentage rollouts and experiments treat all guests as one person. Quinn belongs to `abc-freight`, ABC Freight's own organization, which is the individual target used to test a release in production before customers see it.
 
+## LaunchDarkly configuration
+
+The LaunchDarkly setup is Terraform code in `terraform/`: the project, the flags and their starting targeting, the trigger, the metrics, and the AI Config's models and prompts. After creating targeting, Terraform leaves it to LaunchDarkly, so a release or a rollback made there is never undone by the next apply ([ADR 0006](decisions/0006-launchdarkly-configuration-as-code.md)). The app itself knows nothing about Terraform: it only needs the flag keys in `app/flags.py` to match, which `tests/test_terraform.py` checks.
+
 ## Failure behavior
 
 | Situation | What happens |

@@ -4,6 +4,8 @@ Everything the app expects to find in LaunchDarkly, in the order you need it. St
 
 LaunchDarkly's UI changes over time. If a label here does not match what you see, the linked LaunchDarkly doc for that step has the current wording.
 
+**Faster: Terraform.** [terraform/README.md](../terraform/README.md) creates most of this with `terraform apply`. The steps below stay the reference for every setting, and cover what Terraform cannot do: the experiments checkbox (step 3), the experiments themselves (steps 6 and 7), AI Config targeting (step 7) and Slack (step 8).
+
 ## 1. Project and SDK key
 
 1. Create a project named **ABC Freight** with key `abc-freight`. If you use another key, set `LD_PROJECT_KEY` to match.
@@ -66,10 +68,10 @@ Reference: [Flag triggers](https://launchdarkly.com/docs/home/releases/triggers)
 Turn the flag **On** with the default rule serving `off`. Nobody sees the panel yet. Then build the targeting while a browser is open, so the audience sees each step land:
 
 1. **Individual target.** Click **+**, choose **Target individuals** (not a custom rule), pick the **organization** context kind, and enter key `lakeshore-logistics` serving `us`. Riley's view changes; nobody else's does. The page footer shows `TARGET_MATCH` for Riley. If it shows `RULE_MATCH`, the target was built as a rule.
-2. **Rule 1, "Enterprise in Canada".** If `organization` `plan` is one of `enterprise` AND `organization` `region` is one of `CA`, serve `canada`.
-3. **Rule 2, "Enterprise in US".** If `organization` `plan` is one of `enterprise` AND `organization` `region` is one of `US`, serve `us`.
+2. **Rule 1, "Enterprise in US".** If `organization` `plan` is one of `enterprise` AND `organization` `region` is one of `US`, serve `us`.
+3. **Rule 2, "Enterprise in Canada".** If `organization` `plan` is one of `enterprise` AND `organization` `region` is one of `CA`, serve `canada`.
 
-The two rules never match the same organization, so their order does not matter. The footer names the rule by its position (`RULE_MATCH (rule 1)`), so the number follows the order you chose.
+The two rules never match the same organization, so their order does not change who sees what. The footer names a rule by its position (`RULE_MATCH (rule 1)`); `terraform/flags.tf` and the tests use this order.
 
 Expected results are in the visitor table in the README. To check why a visitor got a value, look at the page footer, or run `python scripts/explain.py`, which prints every visitor's value and reason for each flag without sending any events.
 
@@ -102,7 +104,7 @@ python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 
 Each run creates new synthetic US enterprise organizations. The default made-up conversion rates are 8% for `off` and 12% for `us`. 2,500 visitors is enough to detect that difference; [EXPERIMENT.md](EXPERIMENT.md) shows the sizing and the result. Results appear on the experiment's results tab within a few minutes. The traffic is synthetic: it proves the wiring, not the business result.
 
-While the experiment runs, Sam (Lone Star Freight, enterprise in US) is part of it. LaunchDarkly assigns Lone Star Freight to `off` or `us` at random and keeps it there, so Sam may see no panel. The footer then shows `RULE_MATCH (rule 2, in experiment)`. That is the experiment working, not a targeting bug.
+While the experiment runs, Sam (Lone Star Freight, enterprise in US) is part of it. LaunchDarkly assigns Lone Star Freight to `off` or `us` at random and keeps it there, so Sam may see no panel. The footer then shows `RULE_MATCH (rule 1, in experiment)`. That is the experiment working, not a targeting bug.
 
 Reference: [Creating experiments](https://launchdarkly.com/docs/home/experimentation/create).
 
@@ -146,7 +148,7 @@ Type the line breaks with Enter. Do not paste `<br>`: the model receives it as l
 
 Optional: add a custom parameter `{"effort": "low"}` to make the model think less, which lowers latency and cost. Valid values are `low`, `medium`, `high`, `xhigh` and `max`. The app ignores any other value and logs a warning.
 
-**Targeting**: default rule serves `concise`. Add a rule: `organization` `plan` is one of `enterprise` serves `friendly`.
+**Targeting**: default rule serves `concise`. Add a custom rule: context kind `organization`, attribute `plan` (not `key`), **is one of** `enterprise`, serve `friendly`.
 
 **Model key.** Set `MODEL_API_KEY` in `.env` to an Anthropic API key and restart the app. Without a key, the assistant runs as a **dry run**: it shows the model, parameters and prompt LaunchDarkly served, and calls no model, so it costs nothing. Set `ASSISTANT_DRY_RUN=true` to keep the dry run even with a key, for example while rehearsing. Answers from a real model cost a fraction of a cent each.
 

@@ -66,7 +66,7 @@ def eta(td: TestData, on: bool, *, internal_only: bool = False) -> None:
 
 
 def hos(td: TestData, *, on: bool = True, targets: bool = False, rules: bool = False) -> None:
-    """The hours-of-service flag as docs/LAUNCHDARKLY_SETUP.md describes it."""
+    """The hours-of-service flag as terraform/flags.tf and docs/LAUNCHDARKLY_SETUP.md describe it."""
     flag = td.flag(HOS_FLAG).variations("off", "us", "canada").off_variation(HOS_OFF)
     flag = flag.fallthrough_variation(HOS_OFF).on(on)
     if targets:
@@ -74,13 +74,13 @@ def hos(td: TestData, *, on: bool = True, targets: bool = False, rules: bool = F
     if rules:
         (
             flag.if_match_context("organization", "plan", "enterprise")
-            .and_match_context("organization", "region", "CA")
-            .then_return(HOS_CANADA)
+            .and_match_context("organization", "region", "US")
+            .then_return(HOS_US)
         )
         (
             flag.if_match_context("organization", "plan", "enterprise")
-            .and_match_context("organization", "region", "US")
-            .then_return(HOS_US)
+            .and_match_context("organization", "region", "CA")
+            .then_return(HOS_CANADA)
         )
     td.update(flag)
 

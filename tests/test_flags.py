@@ -60,8 +60,8 @@ def test_staged_release_reaches_only_the_internal_tester(ld):
 @pytest.mark.parametrize(
     ("visitor", "expected", "reason"),
     [
-        ("dana", "canada", "RULE_MATCH (rule 1)"),
-        ("sam", "us", "RULE_MATCH (rule 2)"),
+        ("sam", "us", "RULE_MATCH (rule 1)"),
+        ("dana", "canada", "RULE_MATCH (rule 2)"),
         ("riley", "us", "TARGET_MATCH"),
         ("alex", "off", "FALLTHROUGH"),
         ("quinn", "off", "FALLTHROUGH"),  # internal plan: matches neither rule, so stays out of the experiment

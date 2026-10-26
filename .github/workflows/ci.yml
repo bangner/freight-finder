@@ -58,3 +58,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: docker build -t abc-freight .
+
+  terraform:
+    name: Terraform checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+      # Plan-only tests with a mocked provider (terraform/tests): no LaunchDarkly token needed.
+      - run: terraform test

@@ -1,0 +1,82 @@
+# Adopt a project you already built by hand with docs/LAUNCHDARKLY_SETUP.md, so
+# Terraform manages it from now on. terraform/README.md walks through it:
+#
+#   cp imports.tf.example imports.tf        (imports.tf is git-ignored)
+#   set trigger_id below, then: terraform plan
+#
+# The plan is read-only. Apply only if it destroys and replaces nothing.
+# Metric keys are the ones LaunchDarkly generated from the names: check them
+# under Metrics and edit the ids below if yours differ.
+
+locals {
+  # Ends the trigger's API path. List triggers with:
+  # curl -s -H "Authorization: $LAUNCHDARKLY_ACCESS_TOKEN" \
+  #   https://app.launchdarkly.com/api/v2/flags/abc-freight/eta-predictions/triggers/test | jq -r '.items[]._id'
+  trigger_id = "REPLACE_ME"
+}
+
+import {
+  to = launchdarkly_project.abc_freight
+  id = var.project_key
+}
+
+import {
+  to = launchdarkly_context_kind.organization
+  id = "${var.project_key}/organization"
+}
+
+import {
+  to = launchdarkly_feature_flag.eta_predictions
+  id = "${var.project_key}/eta-predictions"
+}
+
+import {
+  to = launchdarkly_feature_flag_environment.eta_predictions_test
+  id = "${var.project_key}/test/eta-predictions"
+}
+
+import {
+  to = launchdarkly_flag_trigger.eta_predictions_off[0]
+  id = "${var.project_key}/test/eta-predictions/${local.trigger_id}"
+}
+
+import {
+  to = launchdarkly_feature_flag.driver_hours_of_service
+  id = "${var.project_key}/driver-hours-of-service"
+}
+
+import {
+  to = launchdarkly_feature_flag_environment.driver_hours_of_service_test
+  id = "${var.project_key}/test/driver-hours-of-service"
+}
+
+# Needs create_booking_metric = true (terraform.tfvars).
+import {
+  to = launchdarkly_metric.book_load_clicked[0]
+  id = "${var.project_key}/book-a-load-clicked"
+}
+
+import {
+  to = launchdarkly_metric.assistant_response_time
+  id = "${var.project_key}/assistant-response-time"
+}
+
+import {
+  to = launchdarkly_metric.assistant_output_tokens
+  id = "${var.project_key}/assistant-output-tokens"
+}
+
+import {
+  to = launchdarkly_ai_config.dispatcher_assistant
+  id = "${var.project_key}/dispatcher-assistant"
+}
+
+import {
+  to = launchdarkly_ai_config_variation.concise
+  id = "${var.project_key}/dispatcher-assistant/concise"
+}
+
+import {
+  to = launchdarkly_ai_config_variation.friendly
+  id = "${var.project_key}/dispatcher-assistant/friendly"
+}

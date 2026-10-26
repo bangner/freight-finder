@@ -118,8 +118,8 @@ def test_release_rollback_targeting_and_assistant_without_reload(server, td, pag
     expect(page.locator("#hos-panel")).to_be_hidden()
     hos(td, targets=True, rules=True)
     expect(page.locator("#hos-rules")).to_have_text("Rules: Canada (south of 60°N)", timeout=TIMEOUT_MS)
-    # The footer says why: Dana matched the first targeting rule.
-    expect(page.locator("#flag-values")).to_contain_text('driver-hours-of-service: "canada" RULE_MATCH (rule 1)')
+    # The footer says why: Dana matched the second targeting rule, Enterprise in Canada.
+    expect(page.locator("#flag-values")).to_contain_text('driver-hours-of-service: "canada" RULE_MATCH (rule 2)')
     shot(page, "4-hos-canada")
 
     page.select_option("#visitor-select", "sam")

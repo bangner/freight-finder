@@ -7,6 +7,7 @@ pip install -r requirements-dev.txt
 pytest                      # everything except the browser test, about 3 s
 pytest tests/e2e            # real browser; needs: python -m playwright install chromium
 ruff check . && ruff format --check .
+cd terraform && terraform init -backend=false && terraform test   # plan-only, mocked provider
 ```
 
 No LaunchDarkly account, key or network access is needed. The tests use the SDK's `TestData` source to play the part of LaunchDarkly.
@@ -21,8 +22,10 @@ One detail matters here. `TestData` normally writes straight into the SDK's flag
 | `tests/test_settings.py` | Clear failure on a missing or wrong SDK key, the dry-run switch |
 | `tests/test_scripts.py` | Rollback through the trigger and the REST fallback (against a local fake server), repeatability, the traffic simulator, the assistant simulator, `explain.py` |
 | `tests/e2e/test_browser.py` | Chromium on a real server: the full Part 1 demo (internal tester first, then everyone), Part 2 and the assistant, checking that the page never reloads |
+| `tests/test_terraform.py` | The Terraform code creates every flag the app evaluates, and its metrics count the events the app sends |
+| `terraform/tests/plan.tftest.hcl` | The release flag starts off and reaches only ABC Freight's staff first, the assistant metrics treat lower as better, the booking metric waits for the experiments checkbox, the trigger is optional |
 
-CI runs the tests on Python 3.11, 3.12 and 3.13, the browser test, a gitleaks secret scan and a Docker build on every push. A second workflow sends flag code references to LaunchDarkly once the `LD_ACCESS_TOKEN` secret is set.
+CI runs the tests on Python 3.11, 3.12 and 3.13, the browser test, a gitleaks secret scan, a Docker build, and Terraform's format check, validation and tests on every push. A second workflow sends flag code references to LaunchDarkly once the `LD_ACCESS_TOKEN` secret is set.
 
 ## Manual test plan
 
@@ -50,3 +53,5 @@ Run against a real LaunchDarkly Test environment set up as in [LAUNCHDARKLY_SETU
 | 18 | AI Config experiment | With the experiment started, run `scripts/simulate_assistant.py --users 60` | Both variations get answers; the experiment shows response time and output tokens for each |
 | 19 | Cleanup | Close the tab, open `/healthz` | `open_streams` drops by one |
 | 20 | Slack | Run the rollback with Slack subscribed | The channel shows the change |
+| 21 | Terraform, new project | In a separate workspace, `terraform apply -var project_key=<throwaway key>`; set the AI Config targeting and tick the experiments checkbox; apply again with `-var create_booking_metric=true`; run `scripts/explain.py` with that project's SDK key | Both applies succeed. Same values and reasons as the README's visitor table; the assistant serves `claude-haiku-5-5` with `max_tokens` 2000, and `claude-sonnet-5-5` with 4000 for enterprise. Then delete the project |
+| 22 | Terraform, no drift | `terraform plan` against the demo project | "No changes. Your infrastructure matches the configuration." |

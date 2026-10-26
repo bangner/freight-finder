@@ -9,6 +9,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 | Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
 | Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. An experiment compares the two variations on speed and output: [results](docs/AI_EXPERIMENT.md). | AI Config, variations, AI metrics, feedback |
 | Extra: Integrations | Every flag change, including the rollback, posts to Slack. LaunchDarkly shows where each flag is used in this repo. | Slack app, code references |
+| Extra: Configuration as code | The LaunchDarkly setup, from the flags to the assistant's prompts, is Terraform code. The demo project was adopted into it, and `terraform plan` shows it matches. | Terraform provider |
 
 ![The ETA panel after the flag is turned on](docs/images/2-eta-on.png)
 
@@ -24,7 +25,7 @@ cp .env.example .env        # then paste your SDK key into .env
 python -m app               # http://127.0.0.1:8000
 ```
 
-Before running, create the flags in LaunchDarkly. [docs/LAUNCHDARKLY_SETUP.md](docs/LAUNCHDARKLY_SETUP.md) walks through every click. The app runs without them too: every feature simply stays off.
+Before running, set up LaunchDarkly. The quickest way is Terraform 1.7 or newer: [terraform/README.md](terraform/README.md) creates the project, flags, trigger, metrics and AI Config with `terraform apply`, and lists the few steps it cannot do. To do it by hand, [docs/LAUNCHDARKLY_SETUP.md](docs/LAUNCHDARKLY_SETUP.md) walks through every click. The app runs without either: every feature simply stays off.
 
 Prefer Docker? `docker build -t abc-freight . && docker run --rm -p 8000:8000 --env-file .env abc-freight`
 
@@ -38,7 +39,7 @@ Prefer Docker? `docker build -t abc-freight . && docker run --rm -p 8000:8000 --
 | `MODEL_API_KEY` | Real answers from the dispatcher assistant (an Anthropic API key). Without it the assistant runs as a free dry run. | No |
 | `ASSISTANT_DRY_RUN` | Set to `true` to keep the assistant in dry-run mode even with a key | No |
 
-The app refuses to start without `LAUNCHDARKLY_SDK_KEY`, and says so. No key or token is ever sent to the browser.
+The app refuses to start without `LAUNCHDARKLY_SDK_KEY`, and says so. No key or token is ever sent to the browser. Terraform's access token goes in `terraform/.env`, not here: the app never needs it.
 
 ## Demo script
 
@@ -111,14 +112,16 @@ LaunchDarkly ──stream──▶ SDK (FastAPI) ──listener──▶ /events
 | `scripts/simulate_assistant.py` | Real questions from synthetic dispatchers, for the AI Config experiment |
 | `scripts/explain.py` | Every visitor's flag values and the reasons, from your LaunchDarkly environment |
 | `tests/` | Unit, integration and browser tests; no keys or network needed |
+| `terraform/` | The LaunchDarkly setup as code: project, flags, trigger, metrics, AI Config |
 | `docs/` | Setup, architecture, runbook, testing, decision records |
 
 ## Testing
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                    # about 55 tests, a few seconds, no LaunchDarkly account needed
+pytest                                    # about 60 tests, a few seconds, no LaunchDarkly account needed
 python -m playwright install chromium && pytest tests/e2e   # real browser, flags flipped live
+cd terraform && terraform init -backend=false && terraform test   # Terraform, mocked provider
 ```
 
 The tests use the SDK's `TestData` source, so they need no network and no keys. The browser test opens the page, flips flags underneath it, and checks the page never reloads. [docs/TESTING.md](docs/TESTING.md) has the manual test plan too.
@@ -126,12 +129,13 @@ The tests use the SDK's `TestData` source, so they need no network and no keys. 
 ## Docs
 
 - [LaunchDarkly setup](docs/LAUNCHDARKLY_SETUP.md): project, flags, targeting, trigger, metric, experiment, AI Config, Slack
+- [Terraform](terraform/README.md): the same setup as code, what it owns, and how to adopt a project built by hand
 - [Architecture](docs/ARCHITECTURE.md): design, failure behavior, limits, and what changes with more instances
 - [Runbook](docs/RUNBOOK.md): release, roll back, verify, retire a release flag, rotate secrets
 - [Experiment](docs/EXPERIMENT.md): hours of service and bookings: sizing, result and decision
 - [AI Config experiment](docs/AI_EXPERIMENT.md): concise or friendly assistant: result and decision
 - [Testing](docs/TESTING.md): automated tests and the manual test plan
-- [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag
+- [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag, and what Terraform owns
 
 ## Known limitations
 
