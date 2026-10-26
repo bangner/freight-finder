@@ -137,6 +137,7 @@ The tests use the SDK's `TestData` source, so they need no network and no keys. 
 
 - Single process, in-memory SSE connections. Fine for a demo; see the architecture doc for scaling.
 - Visitors are presets. There is no login.
+- Every guest shares one anonymous context key. A production site would give each anonymous visitor its own key, so rollouts and experiments count guests separately.
 - All data is fictional and static. The hours-of-service figures follow published US and Canadian limits in simplified form and are not a compliance tool.
 - The assistant supports Anthropic models only.
 

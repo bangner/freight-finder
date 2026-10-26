@@ -136,6 +136,9 @@ def build_context(visitor: Visitor) -> Context:
     user.set("role", visitor.role)
     if visitor.anonymous:
         # Anonymous contexts are evaluated normally but kept off the Contexts list.
+        # Every guest in this demo shares one key. In production, give each anonymous
+        # visitor its own key (for example a random ID kept in a cookie); otherwise
+        # percentage rollouts and experiments treat all guests as one person.
         user.anonymous(True)
     else:
         user.set("email", visitor.email)
