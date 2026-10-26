@@ -12,7 +12,7 @@ A shipper portal that uses LaunchDarkly to test features in production, release 
 | 2. Target | Hours-of-service panel: one shipper by name, enterprise shippers by region | Multi-context, individual and rule-based targeting | `app/contexts.py` |
 | Extra: Experimentation | Does the panel lift bookings? +42% on synthetic traffic (simulator set to 8% → 12%) | Metric, experiment | [Experiments](docs/EXPERIMENTS.md) |
 | Extra: AI Configs | The assistant's model and prompt change with no deploy; an experiment picks the variation | AI Config, AI metrics, feedback | `app/assistant.py` |
-| Extra: Integrations | Flag changes post to Slack; LaunchDarkly shows where each flag is used; pull requests get a comment listing the flags they touch | Slack app, code references, PR flag comments | [Setup](docs/SETUP.md) |
+| Extra: Integrations | Flag changes post to Slack; LaunchDarkly shows where each flag is used; pull requests get a comment listing the flags they touch | Slack app, code references, PR flag comments | [Setup](docs/SETUP.md#8-slack), [Slack messages](docs/images/ld-slack.png), [example PR comment](https://github.com/bangner/freight-finder/pull/6) |
 | Extra: Configuration as code | The LaunchDarkly setup is Terraform; `terraform plan` shows the live project matches | Terraform provider | `terraform/` |
 
 ## Quickstart
