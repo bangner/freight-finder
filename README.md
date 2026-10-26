@@ -7,7 +7,7 @@ A small FastAPI app that shows how LaunchDarkly lets a team release faster witho
 | 1. Release and remediate | The Live ETA panel is tested in production by ABC Freight's own staff, released to every customer, and rolled back with a one-line `curl`, all in an open browser with no reload. | Boolean flag, individual targeting, streaming updates, flag trigger |
 | 2. Target | The hours-of-service panel, a new component on the portal's landing page, reaches one named shipper, plus every enterprise shipper with the rules for their country. | Multi-contexts, individual targeting, rule-based targeting |
 | Extra: Experimentation | Does the hours-of-service panel make US enterprise shippers book more loads? Yes: [results and decision](docs/EXPERIMENT.md). | Custom conversion metric, experiment |
-| Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. | AI Config, variations, AI metrics, feedback |
+| Extra: AI Configs | The assistant's model and prompt change in LaunchDarkly with no deploy. An experiment compares the two variations on speed and output: [results](docs/AI_EXPERIMENT.md). | AI Config, variations, AI metrics, feedback |
 | Extra: Integrations | Every flag change, including the rollback, posts to Slack. | Slack app |
 
 ![The ETA panel after the flag is turned on](docs/images/2-eta-on.png)
@@ -82,6 +82,8 @@ python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 
 **AI Configs.** With the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Sam and Dana (enterprise) get the `friendly` variation; everyone else gets `concise`. Without `MODEL_API_KEY` the answer is a dry run that shows exactly what LaunchDarkly served.
 
+An experiment on the AI Config compares the two variations on response time and output tokens, measured from real answers: `python scripts/simulate_assistant.py --users 60` ([results and decision](docs/AI_EXPERIMENT.md)).
+
 More screenshots are in [docs/images](docs/images). The browser test takes them, so the assistant's answer there comes from a test stub, not a real model.
 
 ## How it works
@@ -105,7 +107,8 @@ LaunchDarkly ──stream──▶ SDK (FastAPI) ──listener──▶ /events
 | `app/assistant.py` | The AI Config-driven assistant and its metrics |
 | `static/` | Plain HTML, CSS and JavaScript (no framework) |
 | `scripts/rollback.sh` | Remediation: turn a flag off |
-| `scripts/simulate_traffic.py` | Synthetic traffic for the experiment |
+| `scripts/simulate_traffic.py` | Synthetic traffic for the hours-of-service experiment |
+| `scripts/simulate_assistant.py` | Real questions from synthetic dispatchers, for the AI Config experiment |
 | `scripts/explain.py` | Every visitor's flag values and the reasons, from your LaunchDarkly environment |
 | `tests/` | Unit, integration and browser tests; no keys or network needed |
 | `docs/` | Setup, architecture, runbook, testing, decision records |
@@ -125,7 +128,8 @@ The tests use the SDK's `TestData` source, so they need no network and no keys. 
 - [LaunchDarkly setup](docs/LAUNCHDARKLY_SETUP.md): project, flags, targeting, trigger, metric, experiment, AI Config, Slack
 - [Architecture](docs/ARCHITECTURE.md): design, failure behavior, limits, and what changes with more instances
 - [Runbook](docs/RUNBOOK.md): release, roll back, verify, retire a release flag, rotate secrets
-- [Experiment](docs/EXPERIMENT.md): sizing, result and decision
+- [Experiment](docs/EXPERIMENT.md): hours of service and bookings: sizing, result and decision
+- [AI Config experiment](docs/AI_EXPERIMENT.md): concise or friendly assistant: result and decision
 - [Testing](docs/TESTING.md): automated tests and the manual test plan
 - [Decision records](docs/decisions/): why SSE, per-visitor listeners, a trigger, multi-contexts, a string flag
 

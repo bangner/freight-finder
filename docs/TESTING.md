@@ -19,7 +19,7 @@ One detail matters here. `TestData` normally writes straight into the SDK's flag
 | `tests/test_live_updates.py` | Snapshot on connect, live push on change, only affected visitors updated, listeners removed on disconnect |
 | `tests/test_api.py` | Endpoints, the simulated bad release, event tracking, the assistant (model, prompt and effort from the AI Config, dry run, cut-off and refused answers, metrics, feedback, failures), no secrets in any response |
 | `tests/test_settings.py` | Clear failure on a missing or wrong SDK key, the dry-run switch |
-| `tests/test_scripts.py` | Rollback through the trigger and the REST fallback (against a local fake server), repeatability, the traffic simulator, `explain.py` |
+| `tests/test_scripts.py` | Rollback through the trigger and the REST fallback (against a local fake server), repeatability, the traffic simulator, the assistant simulator, `explain.py` |
 | `tests/e2e/test_browser.py` | Chromium on a real server: the full Part 1 demo (internal tester first, then everyone), Part 2 and the assistant, checking that the page never reloads |
 
 CI runs the tests on Python 3.11, 3.12 and 3.13, the browser test, a gitleaks secret scan and a Docker build on every push.
@@ -47,5 +47,6 @@ Run against a real LaunchDarkly Test environment set up as in [LAUNCHDARKLY_SETU
 | 15 | AI Config, dry run | Without `MODEL_API_KEY`, ask a question as Sam | Answer starts "Dry run: no model was called" and shows the model, `max_tokens` and prompt LaunchDarkly served |
 | 16 | AI Config | Set `MODEL_API_KEY`, ask a question as Sam, switch Sam's variation, ask again | The assistant panel shows the new model and the tone changes, with no restart |
 | 17 | AI metrics | Click thumbs up | Monitoring tab shows tokens, latency, and positive feedback |
-| 18 | Cleanup | Close the tab, open `/healthz` | `open_streams` drops by one |
-| 19 | Slack | Run the rollback with Slack subscribed | The channel shows the change |
+| 18 | AI Config experiment | With the experiment started, run `scripts/simulate_assistant.py --users 60` | Both variations get answers; the experiment shows response time and output tokens for each |
+| 19 | Cleanup | Close the tab, open `/healthz` | `open_streams` drops by one |
+| 20 | Slack | Run the rollback with Slack subscribed | The channel shows the change |

@@ -53,7 +53,7 @@ def test_assistant_runs_dry_without_model_key(client, td, monkeypatch):
         "dry_run": True,
     }
     body = client.post("/api/assistant", json={"visitor": "sam", "question": "hi"}).json()
-    assert body["dry_run"] is True and body["feedback_token"] is None
+    assert body["dry_run"] is True and body["feedback_token"] is None and body["usage"] is None
     assert body["answer"].startswith("Dry run: no model was called. LaunchDarkly served claude-haiku-5-5")
     assert "Lone Star Freight" in body["answer"]  # the prompt LaunchDarkly served, variables filled in
 
@@ -92,6 +92,8 @@ def test_assistant_uses_model_and_prompt_from_launchdarkly(client_with_model, td
     assert body["answer"] == "Load LSF-1042 is on schedule."
     assert body["model"] == "claude-haiku-5-5"
     assert body["dry_run"] is False
+    assert body["usage"]["input_tokens"] == 120 and body["usage"]["output_tokens"] == 12
+    assert body["usage"]["duration_ms"] >= 0
     api_key, model, max_tokens, effort, system, messages = calls[0]
     assert (api_key, model, max_tokens, effort) == (FAKE_MODEL_KEY, "claude-haiku-5-5", 300, None)
     assert "Lone Star Freight" in system and "LSF-1042" in system  # prompt variables filled in

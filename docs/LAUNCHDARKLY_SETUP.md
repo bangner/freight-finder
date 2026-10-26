@@ -152,7 +152,19 @@ Optional: add a custom parameter `{"effort": "low"}` to make the model think les
 
 Usage, latency, tokens, errors and thumbs up/down show on the config's **Monitoring** tab. Dry runs record nothing there.
 
-Optional: run an experiment on the AI Config with thumbs-up rate as the metric, the same way as step 6.
+**Experiment: concise or friendly?** This compares the two variations on what every answer reports to LaunchDarkly: how long it took and how many tokens it produced.
+
+1. Create two metrics that average the event's value per user, where lower is better:
+
+   | Name | Event key | Unit |
+   | --- | --- | --- |
+   | Assistant response time | `$ld:ai:duration:total` | ms |
+   | Assistant output tokens | `$ld:ai:tokens:output` | tokens |
+
+   The AI SDK sends both events for every answer (`app/assistant.py`).
+2. **Create > Experiment**. Name: "Assistant: concise vs friendly". Assignment: AI Config `dispatcher-assistant`, on its default rule. Randomize by `user`. Split: `concise` 50% (control), `friendly` 50%. Primary metric: Assistant response time; secondary: Assistant output tokens. Save, then **Start**.
+3. Send real questions: `python scripts/simulate_assistant.py --users 60`. Each synthetic dispatcher asks one question through the real assistant, so every time and token count is measured, not made up. It needs `MODEL_API_KEY` and costs under a dollar.
+4. When the results are in, stop the experiment and serve `concise`, so the demo's visitors get the concise assistant again. [AI_EXPERIMENT.md](AI_EXPERIMENT.md) has the result and the decision.
 
 Reference: [AI Configs quickstart](https://launchdarkly.com/docs/home/ai-configs/quickstart).
 

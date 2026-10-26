@@ -142,7 +142,7 @@ def ask(visitor: Visitor, context: Context, loads: list[Load], question: str, se
             f"Dry run: no model was called. LaunchDarkly served {config.model.name} "
             f"(max_tokens {max_tokens}, effort {effort or 'model default'}) with this prompt:\n\n{system}"
         )
-        return {"answer": answer, "model": config.model.name, "feedback_token": None, "dry_run": True}
+        return {"answer": answer, "model": config.model.name, "feedback_token": None, "dry_run": True, "usage": None}
 
     # One tracker per run. It reports duration, tokens and success to the AI Config.
     tracker = config.create_tracker()
@@ -154,7 +154,8 @@ def ask(visitor: Visitor, context: Context, loads: list[Load], question: str, se
         tracker.track_error()
         log.exception("Model call failed for %s", ASSISTANT_CONFIG)
         raise
-    tracker.track_duration(int((time.monotonic() - started) * 1000))
+    duration_ms = int((time.monotonic() - started) * 1000)
+    tracker.track_duration(duration_ms)
     tokens_in, tokens_out = reply.input_tokens, reply.output_tokens
     tracker.track_tokens(TokenUsage(total=tokens_in + tokens_out, input=tokens_in, output=tokens_out))
     problem = _no_answer(reply, max_tokens)
@@ -170,6 +171,8 @@ def ask(visitor: Visitor, context: Context, loads: list[Load], question: str, se
         "model": config.model.name,
         "feedback_token": tracker.resumption_token,
         "dry_run": False,
+        # The same time and tokens reported to LaunchDarkly above (scripts/simulate_assistant.py sums them).
+        "usage": {"duration_ms": duration_ms, "input_tokens": tokens_in, "output_tokens": tokens_out},
     }
 
 

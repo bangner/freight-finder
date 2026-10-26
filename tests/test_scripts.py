@@ -10,9 +10,13 @@ from pathlib import Path
 import ldclient
 import pytest
 
+from app import assistant
+from app.flags import ASSISTANT_CONFIG
+from app.settings import Settings
 from scripts.explain import explain
+from scripts.simulate_assistant import simulate as simulate_assistant
 from scripts.simulate_traffic import simulate
-from tests.conftest import assistant_config, hos
+from tests.conftest import ASSISTANT_VALUE, FAKE_MODEL_KEY, FAKE_SDK_KEY, assistant_config, hos
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -41,6 +45,39 @@ def test_simulator_converts_at_roughly_the_given_rate(ld):
     seen, converted = simulate(ldclient.get(), 2000, {"us": 0.25}, random.Random(7), "test")["us"]
     assert seen == 2000
     assert 0.21 < converted / seen < 0.29
+
+
+SETTINGS_WITH_MODEL = Settings(sdk_key=FAKE_SDK_KEY, model_api_key=FAKE_MODEL_KEY)
+
+
+def test_assistant_simulator_measures_answers_on_the_default_rule(ld, monkeypatch):
+    # The AI Config as in LaunchDarkly: enterprise gets friendly, everyone else the default rule.
+    friendly = {
+        **ASSISTANT_VALUE,
+        "_ldMeta": {**ASSISTANT_VALUE["_ldMeta"], "variationKey": "friendly"},
+        "model": {"name": "claude-sonnet-5-5", "parameters": {"max_tokens": 400}},
+    }
+    flag = ld.flag(ASSISTANT_CONFIG).variations(ASSISTANT_VALUE, friendly).fallthrough_variation(0)
+    flag.if_match_context("organization", "plan", "enterprise").then_return(1)
+    ld.update(flag)
+    reply = assistant.ModelReply("On schedule.", 900, 40, "end_turn")
+    monkeypatch.setattr(assistant, "_call_model", lambda *args: reply)
+
+    results, errors = simulate_assistant(4, SETTINGS_WITH_MODEL, "test")
+
+    # Synthetic dispatchers are self-serve, so each reaches the default rule, where the experiment runs.
+    assert errors == 0 and list(results) == ["claude-haiku-5-5"]
+    assert [usage["output_tokens"] for usage in results["claude-haiku-5-5"]] == [40] * 4
+
+
+def test_assistant_simulator_counts_failed_answers(ld, monkeypatch):
+    assistant_config(ld, enabled=True)
+
+    def broken(*args):
+        raise RuntimeError("provider down")
+
+    monkeypatch.setattr(assistant, "_call_model", broken)
+    assert simulate_assistant(3, SETTINGS_WITH_MODEL, "test") == ({}, 3)
 
 
 @pytest.fixture
