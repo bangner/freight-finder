@@ -36,7 +36,7 @@ python scripts/simulate_assistant.py --users 500
 
 - No answer failed. The split is 262 to 238 because LaunchDarkly assigns each user at random.
 - `friendly` took about 2.2 times as long and produced about 1.7 times as many output tokens.
-- At list prices, Sonnet's output costs 20 times Haiku's per token ($10 against $0.50 per million), so a friendly answer's output costs about 34 times a concise one's. The whole run cost under $2.
+- At list prices, Sonnet's output costs 20 times Haiku's per token ($10 against $0.50 per million), so a friendly answer's output costs about 34 times a concise one's. The whole run cost under $2. The AI Config's Monitoring tab agrees: over the week it averaged $0.0002 per concise answer and $0.0049 per friendly one, input and output together ([screenshot](images/ld-ai-monitoring.png)).
 
 ## LaunchDarkly's results
 

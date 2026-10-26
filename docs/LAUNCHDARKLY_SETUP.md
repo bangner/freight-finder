@@ -31,6 +31,8 @@ Leave the flag **Off** in Test. Then add one individual target so the release ca
 2. Open `eta-predictions`, click **+** and choose **Target individuals**. Context kind **organization**, key `abc-freight`, serve `true`.
 3. Check that the **Default rule** still serves `false`, and save.
 
+![eta-predictions in Test before a release: off, one individual target (organization abc-freight, serving true), default rule false](images/ld-eta-targeting.png)
+
 Releasing then has two steps. Turning the flag **on** shows the feature only to ABC Freight's own staff. Changing the **default rule** to `true` releases it to every customer. Turning the flag **off**, by hand or with the trigger in step 4, rolls back for everyone, targets included.
 
 Before each demo, reset the flag: **Off**, default rule `false`. If the default rule is left at `true`, turning the flag on skips the internal test and releases to everyone at once.
@@ -153,6 +155,8 @@ Optional: add a custom parameter `{"effort": "low"}` to make the model think les
 **Model key.** Set `MODEL_API_KEY` in `.env` to an Anthropic API key and restart the app. Without a key, the assistant runs as a **dry run**: it shows the model, parameters and prompt LaunchDarkly served, and calls no model, so it costs nothing. Set `ASSISTANT_DRY_RUN=true` to keep the dry run even with a key, for example while rehearsing. Answers from a real model cost a fraction of a cent each.
 
 Usage, latency, tokens, errors and thumbs up/down show on the config's **Monitoring** tab. Dry runs record nothing there.
+
+![The Monitoring tab: cost, satisfaction and requests for each variation](images/ld-ai-monitoring.png)
 
 **Experiment: concise or friendly?** This compares the two variations on what every answer reports to LaunchDarkly: how long it took and how many tokens it produced.
 

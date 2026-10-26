@@ -36,6 +36,10 @@ python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 
 The experiment in LaunchDarkly uses the frequentist approach (significance level 0.05, two-sided), the same test as above. Its results also include the 500-visitor smoke run sent earlier, so they differ slightly from the table above. LaunchDarkly updates experiment results periodically, so a new run can take a while to appear.
 
+LaunchDarkly's result, over 3,001 organizations: `us` raised the booking rate by 42.2% relative to `off`, with a 95% interval of +11.1% to +73.4%. Its summary reads "Based on the primary metric Book a load clicked, us is significant in the desired direction."
+
+![LaunchDarkly's results for the running experiment: 3,001 organizations, us 42.2% above off on bookings](images/ld-hos-experiment.png)
+
 ## Decision
 
 Ship `us` to US enterprise shippers. The panel raised bookings by an amount well clear of zero, and nothing in the result suggests harm.
