@@ -82,9 +82,9 @@ python scripts/simulate_traffic.py --visitors 2500 --seed 2026
 
 **AI Configs.** With the AI Config on, the assistant appears. Ask "Which loads are at risk?", switch the variation in LaunchDarkly, and ask again: the model, prompt and tone change with no restart. Sam and Dana (enterprise) get the `friendly` variation; everyone else gets `concise`. Without `MODEL_API_KEY` the answer is a dry run that shows exactly what LaunchDarkly served.
 
-An experiment on the AI Config compares the two variations on response time and output tokens, measured from real answers: `python scripts/simulate_assistant.py --users 60` ([results and decision](docs/AI_EXPERIMENT.md)).
+An experiment on the AI Config compares the two variations on response time and output tokens, measured from real answers: `python scripts/simulate_assistant.py --users 500` ([results and decision](docs/AI_EXPERIMENT.md)).
 
-More screenshots are in [docs/images](docs/images). The browser test takes them, so the assistant's answer there comes from a test stub, not a real model.
+More screenshots are in [docs/images](docs/images). The browser test takes the numbered ones, so the assistant's answer there comes from a test stub, not a real model. The `ld-` ones are LaunchDarkly's own screens.
 
 ## How it works
 
