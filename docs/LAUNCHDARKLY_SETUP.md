@@ -189,6 +189,10 @@ Reference: [AI Configs quickstart](https://launchdarkly.com/docs/home/ai-configs
    ```
 3. Turn `eta-predictions` on, then run `scripts/rollback.sh`. The channel shows both changes, and names the trigger as the one that turned the flag off. Rolling back a flag that is already off changes nothing, so nothing is posted.
 
+Changes made any other way reach the channel too. Terraform's arrive with the comment "Terraform", and a stopped experiment posts its winning variation:
+
+![Slack messages from LaunchDarkly: two flag changes made by Terraform, and the AI Config experiment's winning variation](images/ld-slack.png)
+
 The Slack app is not available on LaunchDarkly's EU or federal instances; use Slack incoming webhooks there.
 
 Reference: [Slack app](https://launchdarkly.com/docs/integrations/slack).

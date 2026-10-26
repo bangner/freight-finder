@@ -47,7 +47,7 @@ No Enterprise plan? Flag triggers need one. Add `-var create_trigger=false` to e
 
 ## What Terraform owns afterwards
 
-- **Definitions are code.** Variations, descriptions, the temporary marker, metrics, models and prompts change here, get reviewed in a pull request, and reach LaunchDarkly with `terraform apply`. Each object carries the tag `managed-by-terraform`, so people can see in LaunchDarkly what not to change by hand.
+- **Definitions are code.** Variations, descriptions, the temporary marker, metrics, models and prompts change here, get reviewed in a pull request, and reach LaunchDarkly with `terraform apply`. Each object carries the tag `managed-by-terraform`, so people can see in LaunchDarkly what not to change by hand. Every apply shows in LaunchDarkly's history, and in Slack if it is connected, with the comment "Terraform" ([setup guide, step 8](../docs/LAUNCHDARKLY_SETUP.md#8-slack-integration)).
 - **Targeting belongs to LaunchDarkly.** Terraform creates each flag's starting targeting, then ignores it (`lifecycle { ignore_changes = all }`). Releasing, rolling back with the trigger and running experiments happen in LaunchDarkly, and a later apply never undoes them. [ADR 0006](../docs/decisions/0006-launchdarkly-configuration-as-code.md) explains the split.
 - **Drift check.** `terraform plan` saying "No changes" means LaunchDarkly matches the code. Never apply a plan that destroys or replaces the project, an environment or the trigger: that would delete SDK keys or change the trigger URL.
 
