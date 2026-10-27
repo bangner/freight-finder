@@ -4,6 +4,18 @@ A shipper portal that uses LaunchDarkly to test features in production, release 
 
 ![The Live ETA panel after release](docs/images/2-eta-on.png)
 
+## Watch the demos
+
+Start with the intro, then watch the demos in order. Each link opens a recording on Loom.
+
+| Video | What it covers |
+| --- | --- |
+| [Intro — start here](https://www.loom.com/share/e7672dc685594d18b418643518e86cf8) | An introduction to the app and demo. |
+| [Part 1: Release and Remediate](https://www.loom.com/share/74067b95bb85423297c56aa31897923d) | Test the Live ETA panel internally, release it and roll it back. |
+| [Part 2: Target](https://www.loom.com/share/2101fe6639914dfebbac94ba78ea1238) | Target the hours-of-service panel by shipper, plan and region. |
+| [Extra Credit: Experimentation](https://www.loom.com/share/d5df07b1506a422eb5405bf8e487e98e) | Explore the booking experiment with synthetic traffic. |
+| [Extra Credit: AI Configs & Integrations](https://www.loom.com/share/94689151a87e416f8faf4cf5c7c21392) | Explore AI Configs and the LaunchDarkly integrations. |
+
 ## What the brief asks, and where it is
 
 | Part | What it shows | LaunchDarkly features | Where |
@@ -36,7 +48,7 @@ source .venv/bin/activate
 python -m app        # http://127.0.0.1:8000
 ```
 
-## Demo
+## Demo walkthrough
 
 Keep one tab open: nothing below reloads the page. The footer shows each flag's value and LaunchDarkly's reason, such as `TARGET_MATCH`. `python scripts/explain.py` prints the same for every visitor.
 
